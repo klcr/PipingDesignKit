@@ -1,28 +1,16 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from '../i18n/context';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
-import { getWaterProperties, WaterData } from '../../domain/fluid/waterProperties';
-import { calcSegmentPressureDrop } from '../../domain/system/pressureDrop';
-import { SegmentInput, PipeSpec, PipeMaterial, FittingInput, SegmentResult } from '../../domain/types';
-import { CraneData, FtData } from '../../domain/fittings/fittingLoss';
-
-import waterJson from '../../../data/fluid-properties/water.json';
-import craneJson from '../../../data/fittings-db/crane-tp410.json';
-import ftJson from '../../../data/fittings-db/ft-values.json';
-import roughnessJson from '../../../data/pipe-specs/surface-roughness.json';
-import ansiJson from '../../../data/pipe-specs/ansi-b36.10m.json';
-import jisJson from '../../../data/pipe-specs/jis-g3452-sgp.json';
-
-const waterData = waterJson as unknown as WaterData;
-const craneData = craneJson as unknown as CraneData;
-const ftData = ftJson as unknown as FtData;
+import { SegmentResult } from '@domain/types';
+import { waterData, craneData, ftData, getAvailableFittings } from '@infrastructure/dataLoader';
+import { getAvailableSizes, getAvailableSchedules, resolvePipeSpec, PipeStandardKey } from '@infrastructure/pipeSpecResolver';
+import { getAvailableMaterials, resolveMaterial } from '@infrastructure/materialResolver';
+import { calcSingleSegment } from '@application/calcSingleSegment';
 
 interface FittingRow {
   fittingId: string;
   quantity: number;
 }
-
-type PipeStandardKey = 'ansi' | 'jis-sgp';
 
 export function PipeLossCalculator() {
   const { t } = useTranslation();
@@ -52,58 +40,11 @@ export function PipeLossCalculator() {
   const [result, setResult] = useState<SegmentResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Available pipe sizes
-  const pipeSizes = useMemo(() => {
-    if (pipeStandard === 'ansi') {
-      return ansiJson.sizes.map(s => ({ nps: s.nps, dn: s.dn }));
-    }
-    return jisJson.sizes.map(s => ({ nps: s.nps, dn: s.dn }));
-  }, [pipeStandard]);
-
-  // Available schedules for ANSI
-  const schedules = useMemo(() => {
-    if (pipeStandard !== 'ansi') return [];
-    const size = ansiJson.sizes.find(s => s.nps === nominalSize);
-    return size?.schedules.map(s => s.schedule) ?? [];
-  }, [pipeStandard, nominalSize]);
-
-  // Resolve pipe spec
-  const pipeSpec = useMemo((): PipeSpec | null => {
-    if (pipeStandard === 'ansi') {
-      const size = ansiJson.sizes.find(s => s.nps === nominalSize);
-      if (!size) return null;
-      const sch = size.schedules.find(s => s.schedule === schedule);
-      if (!sch) return null;
-      return {
-        standard: 'ASME B36.10M',
-        nps: size.nps,
-        dn: size.dn,
-        od_mm: size.od_mm,
-        wall_mm: sch.wall_mm,
-        id_mm: sch.id_mm,
-        schedule: sch.schedule,
-      };
-    }
-    const size = jisJson.sizes.find(s => s.nps === nominalSize);
-    if (!size) return null;
-    return {
-      standard: 'JIS G 3452 SGP',
-      nps: size.nps,
-      dn: size.dn,
-      od_mm: size.od_mm,
-      wall_mm: size.wall_mm,
-      id_mm: size.id_mm,
-    };
-  }, [pipeStandard, nominalSize, schedule]);
-
-  // Available fittings for dropdown
-  const availableFittings = useMemo(() => {
-    const items: { id: string; description: string }[] = [];
-    for (const f of craneData.fittings) items.push({ id: f.id, description: f.description });
-    for (const e of craneData.entrances) items.push({ id: e.id, description: e.description });
-    for (const x of craneData.exits) items.push({ id: x.id, description: x.description });
-    return items;
-  }, []);
+  const pipeSizes = useMemo(() => getAvailableSizes(pipeStandard), [pipeStandard]);
+  const schedules = useMemo(() => getAvailableSchedules(pipeStandard, nominalSize), [pipeStandard, nominalSize]);
+  const pipeSpec = useMemo(() => resolvePipeSpec(pipeStandard, nominalSize, schedule), [pipeStandard, nominalSize, schedule]);
+  const availableFittings = useMemo(() => getAvailableFittings(), []);
+  const materials = useMemo(() => getAvailableMaterials(), []);
 
   const handleCalculate = () => {
     setError(null);
@@ -115,35 +56,20 @@ export function PipeLossCalculator() {
         return;
       }
 
-      const fluid = getWaterProperties(temperature, waterData);
-      const mat = roughnessJson.materials.find(m => m.id === materialId);
-      if (!mat) {
+      const material = resolveMaterial(materialId);
+      if (!material) {
         setError('Material not found');
         return;
       }
 
-      const material: PipeMaterial = {
-        id: mat.id,
-        name: mat.name,
-        roughness_mm: mat.roughness_mm,
-        reference: { source: 'Crane TP-410' },
-      };
-
-      const fittings: FittingInput[] = fittingRows
+      const fittings = fittingRows
         .filter(r => r.quantity > 0)
         .map(r => ({ fittingId: r.fittingId, quantity: r.quantity }));
 
-      const input: SegmentInput = {
-        pipe: pipeSpec,
-        material,
-        fluid,
-        flowRate_m3s: flowRate / 3600,
-        length_m: pipeLength,
-        elevation_m: elevation,
-        fittings,
-      };
-
-      const res = calcSegmentPressureDrop(input, craneData, ftData);
+      const res = calcSingleSegment(
+        { temperature_c: temperature, pipe: pipeSpec, material, flowRate_m3h: flowRate, length_m: pipeLength, elevation_m: elevation, fittings },
+        waterData, craneData, ftData
+      );
       setResult(res);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -209,7 +135,7 @@ export function PipeLossCalculator() {
             )}
             <Field label={t('pipe.material')}>
               <select value={materialId} onChange={e => setMaterialId(e.target.value)} style={inputStyle}>
-                {roughnessJson.materials.map(m => (
+                {materials.map(m => (
                   <option key={m.id} value={m.id}>{m.name} (ε={m.roughness_mm}mm)</option>
                 ))}
               </select>
