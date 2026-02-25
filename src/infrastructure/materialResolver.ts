@@ -11,10 +11,11 @@ import { roughnessData } from './dataLoader';
 /**
  * 利用可能な材質一覧を返す（UI ドロップダウン用）
  */
-export function getAvailableMaterials(): readonly { id: string; name: string; roughness_mm: number }[] {
+export function getAvailableMaterials(): readonly { id: string; name: string; name_ja: string; roughness_mm: number }[] {
   return roughnessData.materials.map(m => ({
     id: m.id,
     name: m.name,
+    name_ja: m.name_ja,
     roughness_mm: m.roughness_mm,
   }));
 }

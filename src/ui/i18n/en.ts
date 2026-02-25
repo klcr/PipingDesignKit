@@ -14,6 +14,8 @@ const en: Record<string, string> = {
   // Pipe
   'pipe.title': 'Pipe Specification',
   'pipe.standard': 'Pipe Standard',
+  'pipe.standard.ansi': 'ASME B36.10M (ANSI)',
+  'pipe.standard.jis_sgp': 'JIS G 3452 (SGP)',
   'pipe.nominal_size': 'Nominal Size',
   'pipe.schedule': 'Schedule',
   'pipe.material': 'Material',

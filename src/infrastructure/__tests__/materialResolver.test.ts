@@ -7,11 +7,13 @@ describe('getAvailableMaterials', () => {
     expect(materials.length).toBe(16);
   });
 
-  it('should include carbon steel', () => {
+  it('should include carbon steel with name_ja', () => {
     const materials = getAvailableMaterials();
     const cs = materials.find(m => m.id === 'carbon_steel_new');
     expect(cs).toBeDefined();
     expect(cs!.roughness_mm).toBe(0.046);
+    expect(cs!.name).toBe('Carbon steel (new, clean)');
+    expect(cs!.name_ja).toBe('炭素鋼（新品）');
   });
 });
 

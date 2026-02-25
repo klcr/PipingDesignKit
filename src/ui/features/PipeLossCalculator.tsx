@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from '../i18n/context';
+import { localizedName } from '../i18n/localizedName';
 import { SegmentResult } from '@domain/types';
 import { waterData, craneData, ftData, getAvailableFittings } from '@infrastructure/dataLoader';
 import { getAvailableSizes, getAvailableSchedules, resolvePipeSpec, PipeStandardKey } from '@infrastructure/pipeSpecResolver';
@@ -12,7 +13,7 @@ interface FittingRow {
 }
 
 export function PipeLossCalculator() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
 
   // Fluid
   const [temperature, setTemperature] = useState(20);
@@ -44,6 +45,13 @@ export function PipeLossCalculator() {
   const pipeSpec = useMemo(() => resolvePipeSpec(pipeStandard, nominalSize, schedule), [pipeStandard, nominalSize, schedule]);
   const availableFittings = useMemo(() => getAvailableFittings(), []);
   const materials = useMemo(() => getAvailableMaterials(), []);
+  const fittingDescMap = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const f of availableFittings) {
+      map.set(f.id, localizedName(locale, f.description, f.description_ja));
+    }
+    return map;
+  }, [availableFittings, locale]);
 
   const handleCalculate = () => {
     setError(null);
@@ -95,6 +103,11 @@ export function PipeLossCalculator() {
         <div>
           {/* Fluid */}
           <Section title={t('fluid.title')}>
+            <Field label={t('fluid.type')}>
+              <select value="water" style={inputStyle} disabled>
+                <option value="water">{t('fluid.water')}</option>
+              </select>
+            </Field>
             <Field label={t('fluid.temperature')}>
               <input type="number" value={temperature} onChange={e => setTemperature(Number(e.target.value))}
                 min={0} max={200} style={inputStyle} /> {t('unit.celsius')}
@@ -105,8 +118,8 @@ export function PipeLossCalculator() {
           <Section title={t('pipe.title')}>
             <Field label={t('pipe.standard')}>
               <select value={pipeStandard} onChange={e => { setPipeStandard(e.target.value as PipeStandardKey); setNominalSize('2'); }} style={inputStyle}>
-                <option value="ansi">ASME B36.10M (ANSI)</option>
-                <option value="jis-sgp">JIS G 3452 (SGP)</option>
+                <option value="ansi">{t('pipe.standard.ansi')}</option>
+                <option value="jis-sgp">{t('pipe.standard.jis_sgp')}</option>
               </select>
             </Field>
             <Field label={t('pipe.nominal_size')}>
@@ -126,7 +139,7 @@ export function PipeLossCalculator() {
             <Field label={t('pipe.material')}>
               <select value={materialId} onChange={e => setMaterialId(e.target.value)} style={inputStyle}>
                 {materials.map(m => (
-                  <option key={m.id} value={m.id}>{m.name} (ε={m.roughness_mm}mm)</option>
+                  <option key={m.id} value={m.id}>{localizedName(locale, m.name, m.name_ja)} (ε={m.roughness_mm}mm)</option>
                 ))}
               </select>
             </Field>
@@ -160,7 +173,7 @@ export function PipeLossCalculator() {
                 <select value={row.fittingId} onChange={e => updateFitting(i, 'fittingId', e.target.value)}
                   style={{ ...inputStyle, flex: 1 }}>
                   {availableFittings.map(f => (
-                    <option key={f.id} value={f.id}>{f.description}</option>
+                    <option key={f.id} value={f.id}>{localizedName(locale, f.description, f.description_ja)}</option>
                   ))}
                 </select>
                 <input type="number" value={row.quantity} onChange={e => updateFitting(i, 'quantity', Number(e.target.value))}
@@ -186,7 +199,7 @@ export function PipeLossCalculator() {
         <div>
           <Section title={t('results.title')}>
             {error && <div style={{ color: 'red', marginBottom: '8px' }}>{error}</div>}
-            {result && <ResultsView result={result} t={t} />}
+            {result && <ResultsView result={result} t={t} fittingDescMap={fittingDescMap} />}
             {!result && !error && (
               <p style={{ color: '#999' }}>{t('action.calculate')}...</p>
             )}
@@ -196,7 +209,7 @@ export function PipeLossCalculator() {
   );
 }
 
-function ResultsView({ result, t }: { result: SegmentResult; t: (key: string) => string }) {
+function ResultsView({ result, t, fittingDescMap }: { result: SegmentResult; t: (key: string) => string; fittingDescMap: Map<string, string> }) {
   const formatNum = (n: number, decimals = 2) => n.toFixed(decimals);
   const formatPa = (pa: number) => {
     if (Math.abs(pa) >= 1e6) return `${(pa / 1e6).toFixed(3)} MPa`;
@@ -247,7 +260,7 @@ function ResultsView({ result, t }: { result: SegmentResult; t: (key: string) =>
             <tbody>
               {result.fittingDetails.map((fd, i) => (
                 <tr key={i} style={{ borderBottom: '1px solid #eee' }}>
-                  <td style={{ padding: '4px' }}>{fd.description}</td>
+                  <td style={{ padding: '4px' }}>{fittingDescMap.get(fd.id) ?? fd.description}</td>
                   <td style={{ textAlign: 'right', padding: '4px' }}>{fd.quantity}</td>
                   <td style={{ textAlign: 'right', padding: '4px' }}>{formatNum(fd.k_value, 4)}</td>
                   <td style={{ textAlign: 'right', padding: '4px' }}>{formatPa(fd.dp_pa)}</td>

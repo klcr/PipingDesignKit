@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from '../i18n/context';
+import { localizedName } from '../i18n/localizedName';
 import { SystemResult, SegmentResult } from '@domain/types';
 import { RouteNode, RouteConversionConfig, ElbowConnectionType, RouteAnalysis } from '@domain/route/types';
 import { analyzeRoute } from '@domain/route/routeToSegments';
@@ -30,7 +31,7 @@ function createDefaultNode(x = 0, y = 0, z = 0): NodeFormState {
 }
 
 export function RouteEditor() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
 
   // System-level inputs
   const [temperature, setTemperature] = useState(20);
@@ -58,6 +59,13 @@ export function RouteEditor() {
 
   const availableFittings = useMemo(() => getAvailableFittings(), []);
   const materials = useMemo(() => getAvailableMaterials(), []);
+  const fittingDescMap = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const f of availableFittings) {
+      map.set(f.id, localizedName(locale, f.description, f.description_ja));
+    }
+    return map;
+  }, [availableFittings, locale]);
   const pipeSizes = useMemo(() => getAvailableSizes(pipeStandard), [pipeStandard]);
   const schedules = useMemo(() => getAvailableSchedules(pipeStandard, nominalSize), [pipeStandard, nominalSize]);
   const pipeSpec = useMemo(() => resolvePipeSpec(pipeStandard, nominalSize, schedule), [pipeStandard, nominalSize, schedule]);
@@ -151,6 +159,11 @@ export function RouteEditor() {
     <div>
       {/* System-level inputs */}
       <Section title={t('system.flow_conditions')}>
+        <Field label={t('fluid.type')}>
+          <select value="water" style={inputStyle} disabled>
+            <option value="water">{t('fluid.water')}</option>
+          </select>
+        </Field>
         <Field label={t('fluid.temperature')}>
           <input type="number" value={temperature} onChange={e => setTemperature(Number(e.target.value))}
             min={0} max={200} style={inputStyle} /> {t('unit.celsius')}
@@ -165,8 +178,8 @@ export function RouteEditor() {
       <Section title={t('route.pipe_settings')}>
         <Field label={t('pipe.standard')}>
           <select value={pipeStandard} onChange={e => { setPipeStandard(e.target.value as PipeStandardKey); setNominalSize('2'); }} style={inputStyle}>
-            <option value="ansi">ASME B36.10M (ANSI)</option>
-            <option value="jis-sgp">JIS G 3452 (SGP)</option>
+            <option value="ansi">{t('pipe.standard.ansi')}</option>
+            <option value="jis-sgp">{t('pipe.standard.jis_sgp')}</option>
           </select>
         </Field>
         <Field label={t('pipe.nominal_size')}>
@@ -186,7 +199,7 @@ export function RouteEditor() {
         <Field label={t('pipe.material')}>
           <select value={materialId} onChange={e => setMaterialId(e.target.value)} style={inputStyle}>
             {materials.map(m => (
-              <option key={m.id} value={m.id}>{m.name} ({'\u03B5'}={m.roughness_mm}mm)</option>
+              <option key={m.id} value={m.id}>{localizedName(locale, m.name, m.name_ja)} ({'\u03B5'}={m.roughness_mm}mm)</option>
             ))}
           </select>
         </Field>
@@ -250,6 +263,7 @@ export function RouteEditor() {
                     availableFittings={availableFittings}
                     onChange={fittingRows => updateNode(i, { fittingRows })}
                     t={t}
+                    locale={locale}
                   />
                 </td>
                 <td style={tdStyle}>
@@ -278,7 +292,7 @@ export function RouteEditor() {
       </Section>
 
       {/* Route analysis preview */}
-      {analysis && <RoutePreview analysis={analysis} t={t} />}
+      {analysis && <RoutePreview analysis={analysis} t={t} fittingDescMap={fittingDescMap} />}
 
       {/* 3-view display */}
       {analysis && routeNodes.length >= 2 && (
@@ -296,18 +310,19 @@ export function RouteEditor() {
 
       {/* Results */}
       {error && <div style={{ color: 'red', marginTop: '12px', padding: '8px' }}>{error}</div>}
-      {result && <SystemResultsView result={result} t={t} />}
+      {result && <SystemResultsView result={result} t={t} fittingDescMap={fittingDescMap} />}
     </div>
   );
 }
 
 // ── Node Fittings (inline) ──
 
-function NodeFittings({ fittingRows, availableFittings, onChange, t }: {
+function NodeFittings({ fittingRows, availableFittings, onChange, t, locale }: {
   fittingRows: FittingRow[];
-  availableFittings: readonly { id: string; description: string }[];
+  availableFittings: readonly { id: string; description: string; description_ja?: string }[];
   onChange: (rows: FittingRow[]) => void;
   t: (key: string) => string;
+  locale: 'ja' | 'en';
 }) {
   const addFitting = () => {
     onChange([...fittingRows, { fittingId: 'valve_gate_full', quantity: 1 }]);
@@ -330,7 +345,7 @@ function NodeFittings({ fittingRows, availableFittings, onChange, t }: {
           <select value={row.fittingId} onChange={e => updateFitting(fi, 'fittingId', e.target.value)}
             style={{ ...inputStyle, flex: 1, fontSize: '0.8em' }}>
             {availableFittings.map(f => (
-              <option key={f.id} value={f.id}>{f.description}</option>
+              <option key={f.id} value={f.id}>{localizedName(locale, f.description, f.description_ja)}</option>
             ))}
           </select>
           <input type="number" value={row.quantity} onChange={e => updateFitting(fi, 'quantity', Number(e.target.value))}
@@ -347,7 +362,7 @@ function NodeFittings({ fittingRows, availableFittings, onChange, t }: {
 
 // ── Route Preview ──
 
-function RoutePreview({ analysis, t }: { analysis: RouteAnalysis; t: (key: string) => string }) {
+function RoutePreview({ analysis, t, fittingDescMap }: { analysis: RouteAnalysis; t: (key: string) => string; fittingDescMap: Map<string, string> }) {
   return (
     <Section title={t('route.preview')}>
       {/* Summary */}
@@ -403,7 +418,7 @@ function RoutePreview({ analysis, t }: { analysis: RouteAnalysis; t: (key: strin
                 <tr key={i} style={{ borderBottom: '1px solid #eee' }}>
                   <td style={tdStyle}>N{elbow.nodeIndex + 1}</td>
                   <td style={{ ...tdStyle, textAlign: 'right' }}>{elbow.angleDeg.toFixed(1)}{'\u00B0'} → {elbow.standardAngle}{'\u00B0'}</td>
-                  <td style={tdStyle}>{elbow.fittingId}</td>
+                  <td style={tdStyle}>{fittingDescMap.get(elbow.fittingId) ?? elbow.fittingId}</td>
                 </tr>
               ))}
             </tbody>
@@ -439,7 +454,7 @@ function SummaryItem({ label, value }: { label: string; value: string }) {
 
 // ── System Results View (shared with MultiSegmentCalculator pattern) ──
 
-function SystemResultsView({ result, t }: { result: SystemResult; t: (key: string) => string }) {
+function SystemResultsView({ result, t, fittingDescMap }: { result: SystemResult; t: (key: string) => string; fittingDescMap: Map<string, string> }) {
   const [expandedSegments, setExpandedSegments] = useState<Set<number>>(new Set());
 
   const toggleSegment = (index: number) => {
@@ -484,7 +499,7 @@ function SystemResultsView({ result, t }: { result: SystemResult; t: (key: strin
             </div>
             {expandedSegments.has(i) && (
               <div style={{ padding: '8px 12px', border: '1px solid #eee', borderTop: 'none', borderRadius: '0 0 4px 4px' }}>
-                <SegmentResultDetail result={segResult} t={t} />
+                <SegmentResultDetail result={segResult} t={t} fittingDescMap={fittingDescMap} />
               </div>
             )}
           </div>
@@ -502,7 +517,7 @@ function SystemResultsView({ result, t }: { result: SystemResult; t: (key: strin
   );
 }
 
-function SegmentResultDetail({ result, t }: { result: SegmentResult; t: (key: string) => string }) {
+function SegmentResultDetail({ result, t, fittingDescMap }: { result: SegmentResult; t: (key: string) => string; fittingDescMap: Map<string, string> }) {
   return (
     <div>
       <ResultRow label={t('flow.velocity')} value={`${formatNum(result.velocity_m_s, 3)} ${t('unit.ms')}`} />
@@ -533,7 +548,7 @@ function SegmentResultDetail({ result, t }: { result: SegmentResult; t: (key: st
           <tbody>
             {result.fittingDetails.map((fd, i) => (
               <tr key={i} style={{ borderBottom: '1px solid #eee' }}>
-                <td style={{ padding: '3px' }}>{fd.description}</td>
+                <td style={{ padding: '3px' }}>{fittingDescMap.get(fd.id) ?? fd.description}</td>
                 <td style={{ textAlign: 'right', padding: '3px' }}>{fd.quantity}</td>
                 <td style={{ textAlign: 'right', padding: '3px' }}>{formatNum(fd.k_value, 4)}</td>
                 <td style={{ textAlign: 'right', padding: '3px' }}>{formatPa(fd.dp_pa)}</td>
