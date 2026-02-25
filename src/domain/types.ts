@@ -71,6 +71,7 @@ export interface FittingResult {
   readonly dp_pa: number;
   readonly head_loss_m: number;
   readonly reference: Reference;
+  readonly warning?: string;
 }
 
 // ── 計算結果（区間別） ──

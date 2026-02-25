@@ -11,6 +11,7 @@ import { SystemResult } from '@domain/types';
 import { getWaterProperties, WaterData } from '@domain/fluid/waterProperties';
 import { calcSystemPressureDrop } from '@domain/system/systemPressureDrop';
 import { CraneData, FtData } from '@domain/fittings/fittingLoss';
+import { flowRateToM3s } from '@domain/system/unitConversion';
 import { convertRouteToSegments } from '@domain/route/routeToSegments';
 import { CalcRouteInput } from './types';
 
@@ -33,7 +34,7 @@ export function calcRoute(
   const fluid = getWaterProperties(input.temperature_c, waterData);
 
   // 2. 流量変換
-  const flowRate_m3s = input.flowRate_m3h / 3600;
+  const flowRate_m3s = flowRateToM3s(input.flowRate_m3h, 'm3/h');
 
   // 3. ルートからセグメントへ変換
   const segments = convertRouteToSegments(

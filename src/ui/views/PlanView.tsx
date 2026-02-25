@@ -13,6 +13,12 @@ import { projectPlan, inversePlan, calcBoundingBox, calcViewBox, applyTransform,
 import { useViewSync } from './ViewSyncContext';
 import { useViewTransform } from '../hooks/useViewTransform';
 import { clientToSvgPoint } from '../hooks/useSvgCoordinates';
+import {
+  PADDING, PIPE_STROKE, NODE_RADIUS, FONT_SIZE, DIM_FONT_SIZE,
+  COLOR_PIPE, COLOR_PIPE_HOVER, COLOR_PIPE_SELECTED,
+  COLOR_NODE, COLOR_NODE_HOVER, COLOR_NODE_SELECTED,
+  COLOR_ELBOW, COLOR_DIM,
+} from './viewConstants';
 
 export interface ViewHandle {
   resetTransform: () => void;
@@ -26,22 +32,8 @@ interface PlanViewProps {
   onDragEnd?: () => void;
 }
 
-const PADDING = 2;
-const PIPE_STROKE = 0.15;
-const NODE_RADIUS = 0.3;
-const FONT_SIZE = 0.5;
-const DIM_FONT_SIZE = 0.4;
 const DRAG_THRESHOLD = 3; // pixels
-
-const COLOR_PIPE = '#336699';
-const COLOR_PIPE_HOVER = '#ff8800';
-const COLOR_PIPE_SELECTED = '#cc3300';
-const COLOR_NODE = '#336699';
-const COLOR_NODE_HOVER = '#ff8800';
-const COLOR_NODE_SELECTED = '#cc3300';
 const COLOR_NODE_DRAGGING = '#cc3300';
-const COLOR_ELBOW = '#996633';
-const COLOR_DIM = '#888888';
 
 export const PlanView = forwardRef<ViewHandle, PlanViewProps>(
   function PlanView({ nodes, analysis, onNodeDrag, onDragStart, onDragEnd }, ref) {

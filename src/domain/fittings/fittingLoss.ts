@@ -64,6 +64,15 @@ function resolveSingleFitting(
   if (input.cvOverride !== undefined && input.cvOverride > 0) {
     const k = calcKFromCv(input.cvOverride, id_mm);
     const loss = calcFittingLoss(k, density, velocity);
+
+    // Cv → K 変換結果の妥当性チェック（id_mm との整合性）
+    let warning: string | undefined;
+    if (k < 0.001) {
+      warning = `K=${k.toExponential(2)}: Cv=${input.cvOverride} is very large relative to pipe ID=${id_mm}mm`;
+    } else if (k > 500) {
+      warning = `K=${k.toFixed(1)}: Cv=${input.cvOverride} is very small relative to pipe ID=${id_mm}mm`;
+    }
+
     return {
       id: input.fittingId,
       description: `Cv=${input.cvOverride} (user input)`,
@@ -73,6 +82,7 @@ function resolveSingleFitting(
       dp_pa: loss.dp_pa * input.quantity,
       head_loss_m: loss.head_m * input.quantity,
       reference: CV_REF,
+      warning,
     };
   }
 

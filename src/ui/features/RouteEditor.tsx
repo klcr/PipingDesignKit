@@ -1,6 +1,8 @@
 import { useState, useMemo, useImperativeHandle, useCallback, useEffect, forwardRef } from 'react';
 import { useTranslation } from '../i18n/context';
 import { localizedName } from '../i18n/localizedName';
+import { Section, Field, ResultRow, inputStyle, smallBtnStyle } from '../components/FormLayout';
+import { formatNum, formatPa } from '../components/formatters';
 import { SystemResult, SegmentResult } from '@domain/types';
 import { RouteNode, RouteConversionConfig, ElbowConnectionType, RouteAnalysis } from '@domain/route/types';
 import { analyzeRoute } from '@domain/route/routeToSegments';
@@ -676,63 +678,7 @@ function SegmentResultDetail({ result, t, fittingDescMap }: { result: SegmentRes
   );
 }
 
-// ── Shared UI helpers ──
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div style={{ marginBottom: '16px', padding: '12px', border: '1px solid #ddd', borderRadius: '8px' }}>
-      <h3 style={{ margin: '0 0 8px', fontSize: '1em', color: '#333' }}>{title}</h3>
-      {children}
-    </div>
-  );
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-      <label style={{ width: '120px', fontSize: '0.9em', color: '#555' }}>{label}</label>
-      {children}
-    </div>
-  );
-}
-
-function ResultRow({ label, value, sub, bold }: { label: string; value: string; sub?: string; bold?: boolean }) {
-  return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '3px 0', fontWeight: bold ? 'bold' : 'normal' }}>
-      <span style={{ color: '#555' }}>{label}</span>
-      <span>
-        {value}
-        {sub && <span style={{ fontSize: '0.85em', color: '#888', marginLeft: '8px' }}>({sub})</span>}
-      </span>
-    </div>
-  );
-}
-
-function formatNum(n: number, decimals = 2) {
-  return n.toFixed(decimals);
-}
-
-function formatPa(pa: number) {
-  if (Math.abs(pa) >= 1e6) return `${(pa / 1e6).toFixed(3)} MPa`;
-  if (Math.abs(pa) >= 1e3) return `${(pa / 1e3).toFixed(2)} kPa`;
-  return `${pa.toFixed(1)} Pa`;
-}
-
-const inputStyle: React.CSSProperties = {
-  padding: '4px 8px',
-  border: '1px solid #ccc',
-  borderRadius: '4px',
-  fontSize: '0.9em',
-};
-
-const smallBtnStyle: React.CSSProperties = {
-  padding: '2px 8px',
-  border: '1px solid #ccc',
-  borderRadius: '4px',
-  background: '#fff',
-  cursor: 'pointer',
-  fontSize: '0.8em',
-};
+// ── Route-specific styles ──
 
 const thStyle: React.CSSProperties = {
   textAlign: 'left',

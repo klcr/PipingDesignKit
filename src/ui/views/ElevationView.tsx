@@ -13,26 +13,18 @@ import { projectElevation, calcBoundingBox, calcViewBox, applyTransform, Point2D
 import { useViewSync } from './ViewSyncContext';
 import { useViewTransform } from '../hooks/useViewTransform';
 import { ViewHandle } from './PlanView';
+import {
+  PADDING, PIPE_STROKE, NODE_RADIUS, FONT_SIZE, DIM_FONT_SIZE,
+  COLOR_PIPE, COLOR_PIPE_HOVER, COLOR_PIPE_SELECTED,
+  COLOR_NODE, COLOR_NODE_HOVER, COLOR_NODE_SELECTED,
+  COLOR_ELBOW, COLOR_DIM,
+} from './viewConstants';
 
 interface ElevationViewProps {
   nodes: readonly RouteNode[];
   analysis: RouteAnalysis;
 }
 
-const PADDING = 2;
-const PIPE_STROKE = 0.15;
-const NODE_RADIUS = 0.3;
-const FONT_SIZE = 0.5;
-const DIM_FONT_SIZE = 0.4;
-
-const COLOR_PIPE = '#336699';
-const COLOR_PIPE_HOVER = '#ff8800';
-const COLOR_PIPE_SELECTED = '#cc3300';
-const COLOR_NODE = '#336699';
-const COLOR_NODE_HOVER = '#ff8800';
-const COLOR_NODE_SELECTED = '#cc3300';
-const COLOR_ELBOW = '#996633';
-const COLOR_DIM = '#888888';
 const COLOR_GROUND = '#aaaaaa';
 
 export const ElevationView = forwardRef<ViewHandle, ElevationViewProps>(

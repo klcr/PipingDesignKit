@@ -16,7 +16,7 @@ export default defineConfig({
   base: '/PipingDesignKit/',
   test: {
     globals: true,
-    environment: 'node',
-    include: ['src/**/*.test.ts'],
+    environment: 'jsdom',
+    include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
   },
 });
