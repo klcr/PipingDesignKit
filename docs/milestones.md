@@ -1,6 +1,6 @@
 # PipingDesignKit — 実装状況とマイルストーン計画
 
-> 最終更新: 2026-02-25 (コードレビュー反映)
+> 最終更新: 2026-02-25 (MS4.5 Phase 1–3 実施後)
 
 ---
 
@@ -22,7 +22,9 @@
 | `ui/features` | ✅ 完了 | PipeLossCalculator (リファクタ済), MultiSegmentCalculator (セグメント追加/削除/並替), RouteEditor (ノードテーブル + エルボプレビュー) — 3 タブ構成 | #4, #5, #6, #7 |
 | `ui/views` | ✅ 完了 | PlanView (平面), ElevationView (立面), IsometricView (アイソメ) — SVG ベース、ViewSyncContext (ビュー間ハイライト同期) | #7 |
 | `ui/i18n` | ✅ 完了 | 日本語/英語 (各 70+ キー)、言語切替 | #2+ |
-| テスト | ✅ 完了 | 175 テストケース / 17 ファイル (domain + application + infrastructure + views), Vitest | #2–#7 |
+| `ui/components` | ✅ 完了 | FormLayout (Section/Field/ResultRow), formatters (formatNum/formatPa) — 共通 UI 抽出 | #14 |
+| `ui/views/viewConstants` | ✅ 完了 | ビュー共通定数 (PADDING, NODE_RADIUS, COLOR_*) を集約 | #14 |
+| テスト | ✅ 完了 | 189 テストケース / 18 ファイル (domain + application + infrastructure + views), Vitest + jsdom | #2–#7, #14 |
 | CI/CD | ✅ 完了 | ci.yml (型チェック + テスト + ビルド), deploy.yml (GitHub Pages) | #4, #8 |
 
 ### 未着手
@@ -31,8 +33,9 @@
 |------|-------------|------|
 | 流体セレクタ拡張 | P1 | 水のみ。蒸気・油など未対応 |
 | 計算書出力 | P2 | PDF / Markdown |
-| データ永続化 | — | 保存/読み込み機能なし |
 | ポンプ選定補助 | P2 | ポンプカーブとの重ね描き |
+| データロード検証 (H-1) | — | Zod 等によるランタイムバリデーション |
+| UX 改善 (M-1〜M-6) | — | useCallback, アクセシビリティ, ErrorBoundary 等 |
 
 ---
 
@@ -124,9 +127,9 @@
 
 ---
 
-### MS4.5: コード品質改善
+### MS4.5: コード品質改善 — 🔧 Phase 1–3 完了
 
-> コードレビュー (2026-02-25) に基づく技術的改善。MS5 着手前に対応を推奨
+> コードレビュー (2026-02-25) に基づく技術的改善
 
 #### アーキテクチャ準拠性評価
 
@@ -137,26 +140,26 @@
 | 「根拠が見える」原則 | ✅ Reference 追跡が計算パイプライン全体で機能 |
 | 命名規約 | ✅ 準拠 |
 
-#### Critical: 計算正確性に影響するリスク
+#### Critical: 計算正確性に影響するリスク — ✅ 全件対応済み
 
-| ID | 対象ファイル | 問題 | 推奨対応 |
+| ID | 対象ファイル | 問題 | 対応状況 |
 |----|------------|------|---------|
-| C-1 | `fittingLoss.ts` L62–74 | Cv override が配管寸法 (id_mm) に対する妥当性を検証せず、不合理な K 値でもエラーなく計算が進む | Cv → K 変換時の id_mm 整合性チェック追加、警告付き結果を返す |
-| C-2 | `systemPressureDrop.ts` L62 | `segments[0].fluid.density` を使い全体水頭を算出するが、セグメント間の密度一致チェックなし | セグメント間の密度一致アサーション追加 |
-| C-3 | `elbowDetection.ts` L76, L89 | `resolveElbowFittingId` が直線 (0°) 等で空文字列を返す。`detectElbows` はスキップするが直接呼出し時のガードなし | 戻り値を `string \| null` に変更し型レベルで防止 |
+| C-1 | `fittingLoss.ts` | Cv override が配管寸法 (id_mm) に対する妥当性を検証していなかった | ✅ K 値の妥当性チェック (K<0.001, K>500) + FittingResult.warning フィールド追加 |
+| C-2 | `systemPressureDrop.ts` | セグメント間の密度一致チェックなし | ✅ 密度一致アサーション追加 (1% 許容) |
+| C-3 | `elbowDetection.ts` | `resolveElbowFittingId` が 0° で空文字列を返していた | ✅ 戻り値を `string \| null` に変更、detectElbows に null ガード追加 |
 
 #### High: 保守性・信頼性の改善
 
-| ID | 対象 | 問題 | 推奨対応 |
+| ID | 対象 | 問題 | 対応状況 |
 |----|------|------|---------|
-| H-1 | `dataLoader.ts` L69–74 | `as unknown as T` キャストのみでロード時スキーマ検証なし | Zod 等による runtime validation 追加 |
-| H-2 | `calcSingleSegment.ts` L39, `calcMultiSegment.ts` L35, `calcRoute.ts` L36 | `/ 3600` (m³/h → m³/s) のハードコード重複 3 箇所 | `unitConversion.ts` に `flowRateM3hToM3s()` を追加 |
-| H-3 | `PipeLossCalculator.tsx` L273+, `MultiSegmentCalculator.tsx` L433+, `RouteEditor.tsx` L551+ | Section, Field, ResultRow, formatNum, formatPa が 3 コンポーネントに重複定義 | `ui/components/` に共通コンポーネントとして抽出 |
-| H-4 | `PlanView.tsx` L19–32, `ElevationView.tsx` L20–34, `IsometricView.tsx` L19–36 | PADDING, NODE_RADIUS, COLOR_* 定数が 3 ビューに重複定義 | `ui/views/viewConstants.ts` に共通定数として抽出 |
-| H-5 | `vite.config.ts` L19 | `test.environment: 'node'` のため React コンポーネントテスト (DOM 操作) が不可。`ui/features/`, `ui/components/` のテストは 0 | `environment: 'jsdom'` に変更、@testing-library/react 導入、主要コンポーネントのテスト作成 |
-| H-6 | `ci.yml` | lint ステップとカバレッジレポートなし | ESLint 導入 + lint ステップ追加、vitest --coverage + しきい値設定 |
+| H-1 | `dataLoader.ts` | `as unknown as T` キャストのみでスキーマ検証なし | ⬜ 未対応 — Zod 導入は次フェーズ |
+| H-2 | `application/calc*.ts` | `/ 3600` ハードコード重複 3 箇所 | ✅ `flowRateToM3s()` に置換 |
+| H-3 | `ui/features/` 3 ファイル | Section, Field, ResultRow, formatNum, formatPa が重複定義 | ✅ `ui/components/FormLayout.tsx` + `formatters.ts` に共通抽出 |
+| H-4 | `ui/views/` 3 ファイル | PADDING, NODE_RADIUS, COLOR_* が重複定義 | ✅ `ui/views/viewConstants.ts` に集約 |
+| H-5 | `vite.config.ts` | `test.environment: 'node'` で UI テスト不可 | ✅ `jsdom` 環境に変更 + `.test.tsx` パターン追加 |
+| H-6 | `ci.yml` | lint ステップとカバレッジなし | ⬜ 未対応 — ESLint + カバレッジは次フェーズ |
 
-#### Medium: UX・コード品質
+#### Medium: UX・コード品質 — ⬜ 未対応
 
 | ID | 対象 | 問題 | 推奨対応 |
 |----|------|------|---------|
@@ -164,7 +167,7 @@
 | M-2 | UI 全般 | アクセシビリティ機能なし (aria-labels, roles) | 主要操作要素に aria 属性追加 |
 | M-3 | エラーメッセージ | 英語のみ、i18n 未対応 | エラーメッセージキーを i18n ファイルに追加 |
 | M-4 | `ui/views/` | ErrorBoundary なし。描画エラーでアプリ全体がクラッシュ | view コンポーネントを ErrorBoundary でラップ |
-| M-5 | `MultiSegmentCalculator.tsx` L27 | グローバル `segmentIdCounter` がコンポーネント再マウントでリセットされない | `useRef` または `React.useId()` に変更 |
+| M-5 | `MultiSegmentCalculator.tsx` | グローバル `segmentIdCounter` がコンポーネント再マウントでリセットされない | `useRef` または `React.useId()` に変更 |
 | M-6 | UI 全般 | インラインスタイルのみ (CSS モジュールなし) | 段階的に CSS Modules へ移行 |
 
 ---
@@ -175,10 +178,10 @@
 
 **進捗:**
 - ✅ GitHub Pages デプロイワークフロー (`deploy.yml`) — PR #8 で導入
+- ✅ ファイル import/export (`fileIO.ts`, `projectFile.ts`) — PR #11 で導入
 - ⬜ Markdown エクスポート — 未着手
 - ⬜ PDF エクスポート — 未着手
 - ⬜ localStorage 永続化 — 未着手
-- ⬜ ファイル import/export — 未着手
 - ⬜ ReportView / ProjectManager UI — 未着手
 
 #### 成果物
@@ -222,15 +225,15 @@ MS1 (基盤強化)            ✅ PR #4
  │     └──→ MS3 (ルート入力)   ✅ PR #6
  │           └──→ MS4 (3ビュー表示)  ✅ PR #7
  │                  │
- │           MS4.5 (コード品質改善) ⬜ ← NEW
+ │           MS4.5 (コード品質改善) 🔧 Phase 1–3 完了
  │                  │
- └──→ MS5 (出力・永続化)  🔧 一部着手 (deploy.yml のみ)
+ └──→ MS5 (出力・永続化)  🔧 一部着手 (deploy.yml + fileIO)
        └──→ MS6 (ポンプ・仕上げ)  ⬜
 ```
 
-- **MS1–MS4**: すべて完了。レイヤー分離 → マルチセグメント → ルート入力 → 3 ビュー表示の順に実装済み
-- **MS4.5**: コードレビュー指摘事項。MS5 着手前に Critical + High を対応推奨
-- **MS5**: deploy.yml (PR #8) は完了。コア機能（計算書出力・データ永続化）は未着手
+- **MS1–MS4**: すべて完了
+- **MS4.5**: Critical 3 件 + High 4 件を対応済み。残り: H-1 (Zod), H-6 (ESLint), M-1〜M-6 (UX)
+- **MS5**: deploy.yml (PR #8) + fileIO (PR #11) は完了。コア機能（計算書出力・localStorage 永続化）は未着手
   - Markdown 出力は MS2 完了済みのため着手可能
   - PDF 出力は MS4 完了済みのため 3 ビュー埋め込みが可能
 - **MS6**: MS5 コア機能の完了が前提
@@ -256,10 +259,11 @@ MS1 (基盤強化)            ✅ PR #4
 
 ## 次のアクション（推奨順序）
 
-1. **Critical バグリスク修正** (C-1, C-2, C-3) — 計算正確性に直結するため最優先
-2. **テスト基盤整備** (H-5, H-6) — jsdom 環境 + ESLint + カバレッジ。以降の改善の品質保証基盤
-3. **コード重複解消** (H-2, H-3, H-4) — MS5 着手前にリファクタリングし、新機能追加時の重複拡大を防止
-4. **データロード検証** (H-1) — Zod 導入によるランタイムバリデーション
-5. **MS5: 計算書出力とデータ永続化** — コア機能の実装
-6. **UX 改善** (M-1〜M-6) — MS5/MS6 と並行して段階的に対応
-7. **MS6: ポンプ選定補助** — 最終マイルストーン
+1. ~~**Critical バグリスク修正** (C-1, C-2, C-3)~~ — ✅ 完了
+2. ~~**コード重複解消** (H-2, H-3, H-4)~~ — ✅ 完了
+3. ~~**テスト環境整備** (H-5 jsdom)~~ — ✅ 完了
+4. **ESLint + カバレッジ** (H-6) — CI 品質ゲートの強化
+5. **データロード検証** (H-1) — Zod 導入によるランタイムバリデーション
+6. **MS5: 計算書出力とデータ永続化** — Markdown/PDF エクスポート、localStorage 永続化
+7. **UX 改善** (M-1〜M-6) — MS5/MS6 と並行して段階的に対応
+8. **MS6: ポンプ選定補助** — 最終マイルストーン

@@ -123,8 +123,8 @@ describe('resolveElbowFittingId', () => {
     expect(resolveElbowFittingId(180, 'welded', false)).toBe('return_bend_180');
   });
 
-  it('0° → 空文字 (エルボなし)', () => {
-    expect(resolveElbowFittingId(0, 'welded', false)).toBe('');
+  it('0° → null (エルボなし)', () => {
+    expect(resolveElbowFittingId(0, 'welded', false)).toBeNull();
   });
 });
 

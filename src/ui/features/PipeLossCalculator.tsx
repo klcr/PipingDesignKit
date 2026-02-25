@@ -1,6 +1,8 @@
 import { useState, useMemo, useImperativeHandle, forwardRef } from 'react';
 import { useTranslation } from '../i18n/context';
 import { localizedName } from '../i18n/localizedName';
+import { Section, Field, ResultRow, inputStyle } from '../components/FormLayout';
+import { formatNum, formatPa } from '../components/formatters';
 import { SegmentResult } from '@domain/types';
 import { waterData, craneData, ftData, getAvailableFittings } from '@infrastructure/dataLoader';
 import { getAvailableSizes, getAvailableSchedules, resolvePipeSpec, PipeStandardKey } from '@infrastructure/pipeSpecResolver';
@@ -239,13 +241,6 @@ export const PipeLossCalculator = forwardRef<PipeLossCalculatorHandle, PipeLossC
 });
 
 function ResultsView({ result, t, fittingDescMap }: { result: SegmentResult; t: (key: string) => string; fittingDescMap: Map<string, string> }) {
-  const formatNum = (n: number, decimals = 2) => n.toFixed(decimals);
-  const formatPa = (pa: number) => {
-    if (Math.abs(pa) >= 1e6) return `${(pa / 1e6).toFixed(3)} MPa`;
-    if (Math.abs(pa) >= 1e3) return `${(pa / 1e3).toFixed(2)} kPa`;
-    return `${pa.toFixed(1)} Pa`;
-  };
-
   return (
     <div>
       {/* Flow conditions */}
@@ -312,39 +307,3 @@ function ResultsView({ result, t, fittingDescMap }: { result: SegmentResult; t: 
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div style={{ marginBottom: '16px', padding: '12px', border: '1px solid #ddd', borderRadius: '8px' }}>
-      <h3 style={{ margin: '0 0 8px', fontSize: '1em', color: '#333' }}>{title}</h3>
-      {children}
-    </div>
-  );
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-      <label style={{ width: '120px', fontSize: '0.9em', color: '#555' }}>{label}</label>
-      {children}
-    </div>
-  );
-}
-
-function ResultRow({ label, value, sub, bold }: { label: string; value: string; sub?: string; bold?: boolean }) {
-  return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '3px 0', fontWeight: bold ? 'bold' : 'normal' }}>
-      <span style={{ color: '#555' }}>{label}</span>
-      <span>
-        {value}
-        {sub && <span style={{ fontSize: '0.85em', color: '#888', marginLeft: '8px' }}>({sub})</span>}
-      </span>
-    </div>
-  );
-}
-
-const inputStyle: React.CSSProperties = {
-  padding: '4px 8px',
-  border: '1px solid #ccc',
-  borderRadius: '4px',
-  fontSize: '0.9em',
-};

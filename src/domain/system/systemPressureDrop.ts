@@ -43,6 +43,20 @@ export function calcSystemPressureDrop(
     };
   }
 
+  // セグメント間の流体密度一致チェック（直列接続の前提条件）
+  const baseDensity = segments[0].fluid.density;
+  const DENSITY_TOLERANCE = 0.01; // 1%
+  for (let i = 1; i < segments.length; i++) {
+    const diff = Math.abs(segments[i].fluid.density - baseDensity) / baseDensity;
+    if (diff > DENSITY_TOLERANCE) {
+      throw new Error(
+        `Segment ${i} fluid density (${segments[i].fluid.density} kg/m³) differs from ` +
+        `segment 0 (${baseDensity} kg/m³) by ${(diff * 100).toFixed(1)}%. ` +
+        `Series connection assumes uniform fluid properties.`
+      );
+    }
+  }
+
   // 各セグメントを個別に計算
   const segmentResults: SegmentResult[] = segments.map(seg =>
     calcSegmentPressureDrop(seg, craneData, ftData)

@@ -66,14 +66,14 @@ export function classifyAngle(
 /**
  * 標準角度 + 接続方式 → Crane TP-410 の fitting ID にマッピング
  *
- * @returns fitting ID。0° (直線) の場合は空文字列
+ * @returns fitting ID。0° (直線) やマッピング不可の場合は null
  */
 export function resolveElbowFittingId(
   standardAngle: ElbowStandardAngle,
   connection: ElbowConnectionType,
   use90LongRadius: boolean
-): string {
-  if (standardAngle === 0) return '';
+): string | null {
+  if (standardAngle === 0) return null;
 
   if (standardAngle === 180) return 'return_bend_180';
 
@@ -86,7 +86,7 @@ export function resolveElbowFittingId(
     return connection === 'threaded' ? 'elbow_45_std_threaded' : 'elbow_45_std_welded';
   }
 
-  return '';
+  return null;
 }
 
 /**
@@ -120,6 +120,7 @@ export function detectElbows(
     if (standardAngle === 0) continue;
 
     const fittingId = resolveElbowFittingId(standardAngle, connection, use90LongRadius);
+    if (fittingId === null) continue; // 型安全ガード: マッピング不可なら継手なし
 
     elbows.push({
       nodeIndex: i,

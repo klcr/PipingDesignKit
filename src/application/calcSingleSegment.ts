@@ -11,6 +11,7 @@ import { SegmentInput, SegmentResult } from '@domain/types';
 import { getWaterProperties, WaterData } from '@domain/fluid/waterProperties';
 import { calcSegmentPressureDrop } from '@domain/system/pressureDrop';
 import { CraneData, FtData } from '@domain/fittings/fittingLoss';
+import { flowRateToM3s } from '@domain/system/unitConversion';
 import { CalcSingleSegmentInput } from './types';
 
 /**
@@ -36,7 +37,7 @@ export function calcSingleSegment(
     pipe: input.pipe,
     material: input.material,
     fluid,
-    flowRate_m3s: input.flowRate_m3h / 3600,
+    flowRate_m3s: flowRateToM3s(input.flowRate_m3h, 'm3/h'),
     length_m: input.length_m,
     elevation_m: input.elevation_m,
     fittings: input.fittings,
