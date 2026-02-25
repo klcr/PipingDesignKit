@@ -3,8 +3,9 @@ import { I18nProvider, useTranslation } from './ui/i18n/context';
 import { LanguageSwitcher } from './ui/components/LanguageSwitcher';
 import { PipeLossCalculator } from './ui/features/PipeLossCalculator';
 import { MultiSegmentCalculator } from './ui/features/MultiSegmentCalculator';
+import { RouteEditor } from './ui/features/RouteEditor';
 
-type TabKey = 'single' | 'multi';
+type TabKey = 'single' | 'multi' | 'route';
 
 function AppContent() {
   const { t } = useTranslation();
@@ -23,9 +24,12 @@ function AppContent() {
       <div style={{ display: 'flex', gap: '0', marginBottom: '20px', borderBottom: '2px solid #ddd' }}>
         <TabButton label={t('tab.single')} active={activeTab === 'single'} onClick={() => setActiveTab('single')} />
         <TabButton label={t('tab.multi')} active={activeTab === 'multi'} onClick={() => setActiveTab('multi')} />
+        <TabButton label={t('tab.route')} active={activeTab === 'route'} onClick={() => setActiveTab('route')} />
       </div>
 
-      {activeTab === 'single' ? <PipeLossCalculator /> : <MultiSegmentCalculator />}
+      {activeTab === 'single' && <PipeLossCalculator />}
+      {activeTab === 'multi' && <MultiSegmentCalculator />}
+      {activeTab === 'route' && <RouteEditor />}
     </div>
   );
 }
