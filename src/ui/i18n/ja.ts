@@ -129,6 +129,13 @@ const ja: Record<string, string> = {
   'view.node_label': 'N',
   'view.ground_line': '地盤線',
 
+  // Project (import/export)
+  'project.export': 'JSON エクスポート',
+  'project.import': 'JSON インポート',
+  'project.name_placeholder': 'プロジェクト名',
+  'project.default_name': '無題プロジェクト',
+  'project.import_error': '読み込みエラー',
+
   // Units
   'unit.m3h': 'm³/h',
   'unit.lmin': 'L/min',

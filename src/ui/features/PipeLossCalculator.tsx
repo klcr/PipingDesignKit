@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useImperativeHandle, forwardRef } from 'react';
 import { useTranslation } from '../i18n/context';
 import { localizedName } from '../i18n/localizedName';
 import { SegmentResult } from '@domain/types';
@@ -6,39 +6,68 @@ import { waterData, craneData, ftData, getAvailableFittings } from '@infrastruct
 import { getAvailableSizes, getAvailableSchedules, resolvePipeSpec, PipeStandardKey } from '@infrastructure/pipeSpecResolver';
 import { getAvailableMaterials, resolveMaterial } from '@infrastructure/materialResolver';
 import { calcSingleSegment } from '@application/calcSingleSegment';
+import { SingleSegmentProjectData } from '@infrastructure/persistence/projectFile';
 
 interface FittingRow {
   fittingId: string;
   quantity: number;
 }
 
-export function PipeLossCalculator() {
+export interface PipeLossCalculatorHandle {
+  getProjectData(): SingleSegmentProjectData;
+}
+
+export interface PipeLossCalculatorProps {
+  initialData?: SingleSegmentProjectData;
+}
+
+export const PipeLossCalculator = forwardRef<PipeLossCalculatorHandle, PipeLossCalculatorProps>(
+  function PipeLossCalculator({ initialData }, ref) {
   const { t, locale } = useTranslation();
 
   // Fluid
-  const [temperature, setTemperature] = useState(20);
+  const [temperature, setTemperature] = useState(initialData?.temperature_c ?? 20);
 
   // Pipe
-  const [pipeStandard, setPipeStandard] = useState<PipeStandardKey>('ansi');
-  const [nominalSize, setNominalSize] = useState('2');
-  const [schedule, setSchedule] = useState('40');
-  const [materialId, setMaterialId] = useState('carbon_steel_new');
+  const [pipeStandard, setPipeStandard] = useState<PipeStandardKey>(
+    (initialData?.pipeStandard as PipeStandardKey) ?? 'ansi'
+  );
+  const [nominalSize, setNominalSize] = useState(initialData?.nominalSize ?? '2');
+  const [schedule, setSchedule] = useState(initialData?.schedule ?? '40');
+  const [materialId, setMaterialId] = useState(initialData?.materialId ?? 'carbon_steel_new');
 
   // Flow
-  const [flowRate, setFlowRate] = useState(10); // m³/h
+  const [flowRate, setFlowRate] = useState(initialData?.flowRate_m3h ?? 10);
 
   // Geometry
-  const [pipeLength, setPipeLength] = useState(50);
-  const [elevation, setElevation] = useState(0);
+  const [pipeLength, setPipeLength] = useState(initialData?.length_m ?? 50);
+  const [elevation, setElevation] = useState(initialData?.elevation_m ?? 0);
 
   // Fittings
-  const [fittingRows, setFittingRows] = useState<FittingRow[]>([
-    { fittingId: 'elbow_90_lr_welded', quantity: 2 },
-  ]);
+  const [fittingRows, setFittingRows] = useState<FittingRow[]>(
+    initialData?.fittings.map(f => ({ fittingId: f.fittingId, quantity: f.quantity }))
+      ?? [{ fittingId: 'elbow_90_lr_welded', quantity: 2 }]
+  );
 
   // Result
   const [result, setResult] = useState<SegmentResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  useImperativeHandle(ref, () => ({
+    getProjectData(): SingleSegmentProjectData {
+      return {
+        temperature_c: temperature,
+        pipeStandard,
+        nominalSize,
+        schedule,
+        materialId,
+        flowRate_m3h: flowRate,
+        length_m: pipeLength,
+        elevation_m: elevation,
+        fittings: fittingRows.filter(r => r.quantity > 0).map(r => ({ fittingId: r.fittingId, quantity: r.quantity })),
+      };
+    },
+  }));
 
   const pipeSizes = useMemo(() => getAvailableSizes(pipeStandard), [pipeStandard]);
   const schedules = useMemo(() => getAvailableSchedules(pipeStandard, nominalSize), [pipeStandard, nominalSize]);
@@ -139,7 +168,7 @@ export function PipeLossCalculator() {
             <Field label={t('pipe.material')}>
               <select value={materialId} onChange={e => setMaterialId(e.target.value)} style={inputStyle}>
                 {materials.map(m => (
-                  <option key={m.id} value={m.id}>{localizedName(locale, m.name, m.name_ja)} (ε={m.roughness_mm}mm)</option>
+                  <option key={m.id} value={m.id}>{localizedName(locale, m.name, m.name_ja)} ({'\u03B5'}={m.roughness_mm}mm)</option>
                 ))}
               </select>
             </Field>
@@ -178,7 +207,7 @@ export function PipeLossCalculator() {
                 </select>
                 <input type="number" value={row.quantity} onChange={e => updateFitting(i, 'quantity', Number(e.target.value))}
                   min={0} style={{ ...inputStyle, width: '60px' }} />
-                <button onClick={() => removeFitting(i)} style={{ padding: '4px 8px', cursor: 'pointer' }}>×</button>
+                <button onClick={() => removeFitting(i)} style={{ padding: '4px 8px', cursor: 'pointer' }}>{'\u00D7'}</button>
               </div>
             ))}
             <button onClick={addFitting} style={{ marginTop: '4px', padding: '4px 12px', cursor: 'pointer' }}>
@@ -207,7 +236,7 @@ export function PipeLossCalculator() {
         </div>
       </div>
   );
-}
+});
 
 function ResultsView({ result, t, fittingDescMap }: { result: SegmentResult; t: (key: string) => string; fittingDescMap: Map<string, string> }) {
   const formatNum = (n: number, decimals = 2) => n.toFixed(decimals);
@@ -254,7 +283,7 @@ function ResultsView({ result, t, fittingDescMap }: { result: SegmentResult; t: 
                 <th style={{ textAlign: 'left', padding: '4px' }}>{t('fittings.type')}</th>
                 <th style={{ textAlign: 'right', padding: '4px' }}>N</th>
                 <th style={{ textAlign: 'right', padding: '4px' }}>K</th>
-                <th style={{ textAlign: 'right', padding: '4px' }}>ΔP</th>
+                <th style={{ textAlign: 'right', padding: '4px' }}>{'\u0394'}P</th>
               </tr>
             </thead>
             <tbody>

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useImperativeHandle, forwardRef } from 'react';
 import { useTranslation } from '../i18n/context';
 import { localizedName } from '../i18n/localizedName';
 import { SystemResult, SegmentResult } from '@domain/types';
@@ -9,6 +9,7 @@ import { getAvailableSizes, getAvailableSchedules, resolvePipeSpec, PipeStandard
 import { getAvailableMaterials, resolveMaterial } from '@infrastructure/materialResolver';
 import { calcRoute } from '@application/calcRoute';
 import { RouteViews } from '../views/RouteViews';
+import { RouteProjectData } from '@infrastructure/persistence/projectFile';
 
 // ── Node form state ──
 
@@ -30,32 +31,78 @@ function createDefaultNode(x = 0, y = 0, z = 0): NodeFormState {
   return { id: `node_${++nodeIdCounter}`, x, y, z, fittingRows: [] };
 }
 
-export function RouteEditor() {
+function createNodeFromData(nd: RouteProjectData['nodes'][number]): NodeFormState {
+  nodeIdCounter++;
+  return {
+    id: nd.id,
+    x: nd.x,
+    y: nd.y,
+    z: nd.z,
+    fittingRows: nd.fittings.map(f => ({ fittingId: f.fittingId, quantity: f.quantity })),
+  };
+}
+
+export interface RouteEditorHandle {
+  getProjectData(): RouteProjectData;
+}
+
+export interface RouteEditorProps {
+  initialData?: RouteProjectData;
+}
+
+export const RouteEditor = forwardRef<RouteEditorHandle, RouteEditorProps>(
+  function RouteEditor({ initialData }, ref) {
   const { t, locale } = useTranslation();
 
   // System-level inputs
-  const [temperature, setTemperature] = useState(20);
-  const [flowRate, setFlowRate] = useState(10);
+  const [temperature, setTemperature] = useState(initialData?.temperature_c ?? 20);
+  const [flowRate, setFlowRate] = useState(initialData?.flowRate_m3h ?? 10);
 
   // Pipe specification (route-wide)
-  const [pipeStandard, setPipeStandard] = useState<PipeStandardKey>('ansi');
-  const [nominalSize, setNominalSize] = useState('2');
-  const [schedule, setSchedule] = useState('40');
-  const [materialId, setMaterialId] = useState('carbon_steel_new');
+  const [pipeStandard, setPipeStandard] = useState<PipeStandardKey>(
+    (initialData?.pipeStandard as PipeStandardKey) ?? 'ansi'
+  );
+  const [nominalSize, setNominalSize] = useState(initialData?.nominalSize ?? '2');
+  const [schedule, setSchedule] = useState(initialData?.schedule ?? '40');
+  const [materialId, setMaterialId] = useState(initialData?.materialId ?? 'carbon_steel_new');
 
   // Elbow settings
-  const [elbowConnection, setElbowConnection] = useState<ElbowConnectionType>('welded');
-  const [use90LR, setUse90LR] = useState(true);
+  const [elbowConnection, setElbowConnection] = useState<ElbowConnectionType>(
+    initialData?.elbowConnection ?? 'welded'
+  );
+  const [use90LR, setUse90LR] = useState(initialData?.use90LongRadius ?? true);
 
   // Node array
-  const [nodes, setNodes] = useState<NodeFormState[]>([
-    createDefaultNode(0, 0, 0),
-    createDefaultNode(10, 0, 0),
-  ]);
+  const [nodes, setNodes] = useState<NodeFormState[]>(
+    initialData?.nodes.map(n => createNodeFromData(n))
+      ?? [createDefaultNode(0, 0, 0), createDefaultNode(10, 0, 0)]
+  );
 
   // Result
   const [result, setResult] = useState<SystemResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  useImperativeHandle(ref, () => ({
+    getProjectData(): RouteProjectData {
+      return {
+        temperature_c: temperature,
+        flowRate_m3h: flowRate,
+        pipeStandard,
+        nominalSize,
+        schedule,
+        materialId,
+        elbowConnection,
+        use90LongRadius: use90LR,
+        nodes: nodes.map(n => ({
+          id: n.id,
+          x: n.x,
+          y: n.y,
+          z: n.z,
+          fittings: n.fittingRows.filter(r => r.quantity > 0).map(r => ({ fittingId: r.fittingId, quantity: r.quantity })),
+        })),
+      };
+    },
+  }));
 
   const availableFittings = useMemo(() => getAvailableFittings(), []);
   const materials = useMemo(() => getAvailableMaterials(), []);
@@ -313,7 +360,7 @@ export function RouteEditor() {
       {result && <SystemResultsView result={result} t={t} fittingDescMap={fittingDescMap} />}
     </div>
   );
-}
+});
 
 // ── Node Fittings (inline) ──
 
