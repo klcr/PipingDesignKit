@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from '../i18n/context';
-import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { SegmentResult } from '@domain/types';
 import { waterData, craneData, ftData, getAvailableFittings } from '@infrastructure/dataLoader';
 import { getAvailableSizes, getAvailableSchedules, resolvePipeSpec, PipeStandardKey } from '@infrastructure/pipeSpecResolver';
@@ -91,16 +90,7 @@ export function PipeLossCalculator() {
   };
 
   return (
-    <div style={{ maxWidth: '900px', margin: '0 auto', padding: '20px', fontFamily: 'sans-serif' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <div>
-          <h1 style={{ margin: 0 }}>{t('app.title')}</h1>
-          <p style={{ margin: '4px 0 0', color: '#666' }}>{t('app.subtitle')}</p>
-        </div>
-        <LanguageSwitcher />
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
         {/* Left column: inputs */}
         <div>
           {/* Fluid */}
@@ -203,7 +193,6 @@ export function PipeLossCalculator() {
           </Section>
         </div>
       </div>
-    </div>
   );
 }
 

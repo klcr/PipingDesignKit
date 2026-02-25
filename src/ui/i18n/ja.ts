@@ -59,6 +59,29 @@ const ja: Record<string, string> = {
   'action.calculate': '計算実行',
   'action.reset': 'リセット',
 
+  // Tabs
+  'tab.single': '単セグメント',
+  'tab.multi': 'マルチセグメント',
+
+  // Segment
+  'segment.title': 'セグメント',
+  'segment.add': 'セグメントを追加',
+  'segment.remove': '削除',
+  'segment.move_up': '上へ',
+  'segment.move_down': '下へ',
+  'segment.collapse': '折りたたむ',
+  'segment.expand': '展開',
+
+  // System
+  'system.flow_conditions': '系統流体条件',
+  'system.summary': '系統サマリ',
+  'system.dp_friction_total': '直管圧損合計',
+  'system.dp_fittings_total': '継手圧損合計',
+  'system.dp_elevation_total': '高低差圧損合計',
+  'system.dp_total': '系統合計圧損',
+  'system.head_total': '系統合計損失水頭',
+  'system.per_segment': 'セグメント別結果',
+
   // Units
   'unit.m3h': 'm³/h',
   'unit.lmin': 'L/min',
