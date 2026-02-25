@@ -111,3 +111,27 @@ export interface SegmentResult {
   readonly fittingDetails: FittingResult[];
   readonly references: Reference[];
 }
+
+// ── 系統入力・結果（直列マルチセグメント） ──
+
+/** 系統全体の入力（複数セグメントの直列接続） */
+export interface SystemInput {
+  readonly segments: SegmentInput[];
+}
+
+/** 系統全体の計算結果 */
+export interface SystemResult {
+  readonly segmentResults: SegmentResult[];
+
+  readonly dp_friction_total: number;    // Pa
+  readonly dp_fittings_total: number;    // Pa
+  readonly dp_elevation_total: number;   // Pa
+  readonly dp_total: number;             // Pa
+
+  readonly head_friction_total_m: number;
+  readonly head_fittings_total_m: number;
+  readonly head_elevation_total_m: number;
+  readonly head_total_m: number;
+
+  readonly references: Reference[];
+}

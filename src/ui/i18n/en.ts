@@ -59,6 +59,29 @@ const en: Record<string, string> = {
   'action.calculate': 'Calculate',
   'action.reset': 'Reset',
 
+  // Tabs
+  'tab.single': 'Single Segment',
+  'tab.multi': 'Multi-Segment',
+
+  // Segment
+  'segment.title': 'Segment',
+  'segment.add': 'Add Segment',
+  'segment.remove': 'Remove',
+  'segment.move_up': 'Move Up',
+  'segment.move_down': 'Move Down',
+  'segment.collapse': 'Collapse',
+  'segment.expand': 'Expand',
+
+  // System
+  'system.flow_conditions': 'System Fluid Conditions',
+  'system.summary': 'System Summary',
+  'system.dp_friction_total': 'Total Straight Pipe Loss',
+  'system.dp_fittings_total': 'Total Fitting Loss',
+  'system.dp_elevation_total': 'Total Elevation Loss',
+  'system.dp_total': 'System Total Pressure Drop',
+  'system.head_total': 'System Total Head Loss',
+  'system.per_segment': 'Per-Segment Results',
+
   // Units
   'unit.m3h': 'm³/h',
   'unit.lmin': 'L/min',
