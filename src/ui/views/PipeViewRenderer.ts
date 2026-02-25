@@ -117,3 +117,34 @@ export function calcViewBox(bbox: BoundingBox, padding: number): string {
 
   return `${cx - halfSize} ${cy - halfSize} ${halfSize * 2} ${halfSize * 2}`;
 }
+
+// ── 逆投影 ──
+
+/**
+ * 平面図逆投影: SVG 2D 座標 → ワールド X, Y
+ * Z はプランビューから復元不可（呼び出し元が元の Z を保持する）
+ */
+export function inversePlan(svgPt: Point2D): { x: number; y: number } {
+  return { x: svgPt.x, y: -svgPt.y };
+}
+
+// ── ビュー変換 ──
+
+/** ビュー変換パラメータ */
+export interface ViewTransform {
+  readonly panX: number;
+  readonly panY: number;
+  readonly zoom: number;
+}
+
+/**
+ * ベース viewBox にズーム/パン変換を適用
+ */
+export function applyTransform(baseViewBox: string, transform: ViewTransform): string {
+  const [bx, by, bw, bh] = baseViewBox.split(' ').map(Number);
+  const cx = bx + bw / 2;
+  const cy = by + bh / 2;
+  const zw = bw / transform.zoom;
+  const zh = bh / transform.zoom;
+  return `${cx - zw / 2 - transform.panX} ${cy - zh / 2 - transform.panY} ${zw} ${zh}`;
+}

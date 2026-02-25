@@ -3,22 +3,43 @@
  *
  * 平面図 (X-Y)、立面図 (X-Z)、アイソメ図を
  * グリッドレイアウトで同時表示し、ビュー間ハイライト同期を提供する。
+ * 確定/キャンセル/Undo/Redo ボタンをヘッダーに配置。
  */
 
+import { useRef } from 'react';
 import { useTranslation } from '../i18n/context';
 import { RouteNode, RouteAnalysis } from '@domain/route/types';
 import { ViewSyncProvider } from './ViewSyncContext';
-import { PlanView } from './PlanView';
+import { PlanView, ViewHandle } from './PlanView';
 import { ElevationView } from './ElevationView';
 import { IsometricView } from './IsometricView';
 
 interface RouteViewsProps {
   nodes: readonly RouteNode[];
   analysis: RouteAnalysis;
+  onNodeDrag?: (index: number, x: number, y: number) => void;
+  onDragStart?: () => void;
+  onDragEnd?: () => void;
+  hasChanges?: boolean;
+  onConfirm?: () => void;
+  onCancel?: () => void;
+  canUndo?: boolean;
+  canRedo?: boolean;
+  onUndo?: () => void;
+  onRedo?: () => void;
 }
 
-export function RouteViews({ nodes, analysis }: RouteViewsProps) {
+export function RouteViews({
+  nodes, analysis,
+  onNodeDrag, onDragStart, onDragEnd,
+  hasChanges, onConfirm, onCancel,
+  canUndo, canRedo, onUndo, onRedo,
+}: RouteViewsProps) {
   const { t } = useTranslation();
+
+  const planRef = useRef<ViewHandle>(null);
+  const elevRef = useRef<ViewHandle>(null);
+  const isoRef = useRef<ViewHandle>(null);
 
   if (nodes.length < 2) return null;
 
@@ -29,9 +50,43 @@ export function RouteViews({ nodes, analysis }: RouteViewsProps) {
       border: '1px solid #ddd',
       borderRadius: '8px',
     }}>
-      <h3 style={{ margin: '0 0 8px', fontSize: '1em', color: '#333' }}>
-        {t('view.title')}
-      </h3>
+      {/* Header with title and action buttons */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        margin: '0 0 8px',
+      }}>
+        <h3 style={{ margin: 0, fontSize: '1em', color: '#333' }}>
+          {t('view.title')}
+        </h3>
+
+        {/* Undo/Redo */}
+        {canUndo && (
+          <button onClick={onUndo} style={headerBtnStyle} title={t('view.undo')}>
+            {'\u21A9'}
+          </button>
+        )}
+        {canRedo && (
+          <button onClick={onRedo} style={headerBtnStyle} title={t('view.redo')}>
+            {'\u21AA'}
+          </button>
+        )}
+
+        <span style={{ flex: 1 }} />
+
+        {/* Confirm / Cancel — visible only when changes exist */}
+        {hasChanges && (
+          <>
+            <button onClick={onConfirm} style={confirmBtnStyle}>
+              {t('view.confirm')}
+            </button>
+            <button onClick={onCancel} style={cancelBtnStyle}>
+              {t('view.cancel')}
+            </button>
+          </>
+        )}
+      </div>
 
       <ViewSyncProvider>
         <div style={{
@@ -40,19 +95,38 @@ export function RouteViews({ nodes, analysis }: RouteViewsProps) {
           gap: '8px',
         }}>
           {/* Plan View (top-left) */}
-          <ViewPanel title={t('view.plan')}>
-            <PlanView nodes={nodes} analysis={analysis} />
+          <ViewPanel
+            title={t('view.plan')}
+            onReset={() => planRef.current?.resetTransform()}
+            resetLabel={t('view.reset_view')}
+          >
+            <PlanView
+              ref={planRef}
+              nodes={nodes}
+              analysis={analysis}
+              onNodeDrag={onNodeDrag}
+              onDragStart={onDragStart}
+              onDragEnd={onDragEnd}
+            />
           </ViewPanel>
 
           {/* Elevation View (top-right) */}
-          <ViewPanel title={t('view.elevation')}>
-            <ElevationView nodes={nodes} analysis={analysis} />
+          <ViewPanel
+            title={t('view.elevation')}
+            onReset={() => elevRef.current?.resetTransform()}
+            resetLabel={t('view.reset_view')}
+          >
+            <ElevationView ref={elevRef} nodes={nodes} analysis={analysis} />
           </ViewPanel>
 
           {/* Isometric View (bottom, spanning both columns) */}
           <div style={{ gridColumn: '1 / -1' }}>
-            <ViewPanel title={t('view.isometric')}>
-              <IsometricView nodes={nodes} analysis={analysis} />
+            <ViewPanel
+              title={t('view.isometric')}
+              onReset={() => isoRef.current?.resetTransform()}
+              resetLabel={t('view.reset_view')}
+            >
+              <IsometricView ref={isoRef} nodes={nodes} analysis={analysis} />
             </ViewPanel>
           </div>
         </div>
@@ -61,7 +135,12 @@ export function RouteViews({ nodes, analysis }: RouteViewsProps) {
   );
 }
 
-function ViewPanel({ title, children }: { title: string; children: React.ReactNode }) {
+function ViewPanel({ title, children, onReset, resetLabel }: {
+  title: string;
+  children: React.ReactNode;
+  onReset?: () => void;
+  resetLabel?: string;
+}) {
   return (
     <div style={{
       border: '1px solid #e0e0e0',
@@ -75,8 +154,20 @@ function ViewPanel({ title, children }: { title: string; children: React.ReactNo
         fontWeight: 'bold',
         color: '#555',
         borderBottom: '1px solid #e0e0e0',
+        display: 'flex',
+        alignItems: 'center',
       }}>
-        {title}
+        <span>{title}</span>
+        <span style={{ flex: 1 }} />
+        {onReset && (
+          <button
+            onClick={onReset}
+            style={resetBtnStyle}
+            title={resetLabel}
+          >
+            {resetLabel}
+          </button>
+        )}
       </div>
       <div style={{ height: '250px', padding: '4px' }}>
         {children}
@@ -84,3 +175,46 @@ function ViewPanel({ title, children }: { title: string; children: React.ReactNo
     </div>
   );
 }
+
+// ── Button styles ──
+
+const headerBtnStyle: React.CSSProperties = {
+  padding: '2px 8px',
+  border: '1px solid #ccc',
+  borderRadius: '4px',
+  background: '#fff',
+  cursor: 'pointer',
+  fontSize: '0.9em',
+  lineHeight: '1.4',
+};
+
+const confirmBtnStyle: React.CSSProperties = {
+  padding: '4px 12px',
+  border: '1px solid #0066cc',
+  borderRadius: '4px',
+  background: '#0066cc',
+  color: '#fff',
+  cursor: 'pointer',
+  fontSize: '0.8em',
+  fontWeight: 'bold',
+};
+
+const cancelBtnStyle: React.CSSProperties = {
+  padding: '4px 12px',
+  border: '1px solid #ccc',
+  borderRadius: '4px',
+  background: '#fff',
+  color: '#555',
+  cursor: 'pointer',
+  fontSize: '0.8em',
+};
+
+const resetBtnStyle: React.CSSProperties = {
+  padding: '1px 6px',
+  border: '1px solid #ccc',
+  borderRadius: '3px',
+  background: '#fff',
+  color: '#888',
+  cursor: 'pointer',
+  fontSize: '0.75em',
+};
