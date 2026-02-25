@@ -13,6 +13,7 @@ export interface CraneFittingEntry {
   readonly id: string;
   readonly type: string;
   readonly description: string;
+  readonly description_ja?: string;
   readonly ldRatio: number;
   readonly connection: string;
 }
@@ -21,6 +22,7 @@ export interface CraneFittingEntry {
 export interface CraneFixedKEntry {
   readonly id: string;
   readonly description: string;
+  readonly description_ja?: string;
   readonly k: number;
 }
 

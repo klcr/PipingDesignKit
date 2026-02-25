@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from '../i18n/context';
+import { localizedName } from '../i18n/localizedName';
 import { SystemResult, SegmentResult } from '@domain/types';
 import { waterData, craneData, ftData, getAvailableFittings } from '@infrastructure/dataLoader';
 import { getAvailableSizes, getAvailableSchedules, resolvePipeSpec, PipeStandardKey } from '@infrastructure/pipeSpecResolver';
@@ -40,7 +41,7 @@ function createDefaultSegment(): SegmentFormState {
 }
 
 export function MultiSegmentCalculator() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
 
   // System-level inputs
   const [temperature, setTemperature] = useState(20);
@@ -55,6 +56,13 @@ export function MultiSegmentCalculator() {
 
   const availableFittings = useMemo(() => getAvailableFittings(), []);
   const materials = useMemo(() => getAvailableMaterials(), []);
+  const fittingDescMap = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const f of availableFittings) {
+      map.set(f.id, localizedName(locale, f.description, f.description_ja));
+    }
+    return map;
+  }, [availableFittings, locale]);
 
   const addSegment = () => {
     setSegments(prev => [...prev, createDefaultSegment()]);
@@ -122,6 +130,11 @@ export function MultiSegmentCalculator() {
     <div>
       {/* System-level inputs */}
       <Section title={t('system.flow_conditions')}>
+        <Field label={t('fluid.type')}>
+          <select value="water" style={inputStyle} disabled>
+            <option value="water">{t('fluid.water')}</option>
+          </select>
+        </Field>
         <Field label={t('fluid.temperature')}>
           <input type="number" value={temperature} onChange={e => setTemperature(Number(e.target.value))}
             min={0} max={200} style={inputStyle} /> {t('unit.celsius')}
@@ -148,6 +161,7 @@ export function MultiSegmentCalculator() {
           availableFittings={availableFittings}
           materials={materials}
           t={t}
+          locale={locale}
         />
       ))}
 
@@ -170,7 +184,7 @@ export function MultiSegmentCalculator() {
 
       {/* Results */}
       {error && <div style={{ color: 'red', marginTop: '12px', padding: '8px' }}>{error}</div>}
-      {result && <SystemResultsView result={result} t={t} />}
+      {result && <SystemResultsView result={result} t={t} fittingDescMap={fittingDescMap} />}
     </div>
   );
 }
@@ -187,12 +201,13 @@ interface SegmentEditorProps {
   isFirst: boolean;
   isLast: boolean;
   canRemove: boolean;
-  availableFittings: readonly { id: string; description: string }[];
-  materials: readonly { id: string; name: string; roughness_mm: number }[];
+  availableFittings: readonly { id: string; description: string; description_ja?: string }[];
+  materials: readonly { id: string; name: string; name_ja: string; roughness_mm: number }[];
   t: (key: string) => string;
+  locale: 'ja' | 'en';
 }
 
-function SegmentEditor({ index, segment, onUpdate, onRemove, onMoveUp, onMoveDown, isFirst, isLast, canRemove, availableFittings, materials, t }: SegmentEditorProps) {
+function SegmentEditor({ index, segment, onUpdate, onRemove, onMoveUp, onMoveDown, isFirst, isLast, canRemove, availableFittings, materials, t, locale }: SegmentEditorProps) {
   const pipeSizes = useMemo(() => getAvailableSizes(segment.pipeStandard), [segment.pipeStandard]);
   const schedules = useMemo(() => getAvailableSchedules(segment.pipeStandard, segment.nominalSize), [segment.pipeStandard, segment.nominalSize]);
   const pipeSpec = useMemo(() => resolvePipeSpec(segment.pipeStandard, segment.nominalSize, segment.schedule), [segment.pipeStandard, segment.nominalSize, segment.schedule]);
@@ -249,8 +264,8 @@ function SegmentEditor({ index, segment, onUpdate, onRemove, onMoveUp, onMoveDow
           {/* Pipe */}
           <Field label={t('pipe.standard')}>
             <select value={segment.pipeStandard} onChange={e => onUpdate({ pipeStandard: e.target.value as PipeStandardKey, nominalSize: '2' })} style={inputStyle}>
-              <option value="ansi">ASME B36.10M (ANSI)</option>
-              <option value="jis-sgp">JIS G 3452 (SGP)</option>
+              <option value="ansi">{t('pipe.standard.ansi')}</option>
+              <option value="jis-sgp">{t('pipe.standard.jis_sgp')}</option>
             </select>
           </Field>
           <Field label={t('pipe.nominal_size')}>
@@ -270,7 +285,7 @@ function SegmentEditor({ index, segment, onUpdate, onRemove, onMoveUp, onMoveDow
           <Field label={t('pipe.material')}>
             <select value={segment.materialId} onChange={e => onUpdate({ materialId: e.target.value })} style={inputStyle}>
               {materials.map(m => (
-                <option key={m.id} value={m.id}>{m.name} ({'\u03B5'}={m.roughness_mm}mm)</option>
+                <option key={m.id} value={m.id}>{localizedName(locale, m.name, m.name_ja)} ({'\u03B5'}={m.roughness_mm}mm)</option>
               ))}
             </select>
           </Field>
@@ -298,7 +313,7 @@ function SegmentEditor({ index, segment, onUpdate, onRemove, onMoveUp, onMoveDow
                 <select value={row.fittingId} onChange={e => updateFitting(fi, 'fittingId', e.target.value)}
                   style={{ ...inputStyle, flex: 1 }}>
                   {availableFittings.map(f => (
-                    <option key={f.id} value={f.id}>{f.description}</option>
+                    <option key={f.id} value={f.id}>{localizedName(locale, f.description, f.description_ja)}</option>
                   ))}
                 </select>
                 <input type="number" value={row.quantity} onChange={e => updateFitting(fi, 'quantity', Number(e.target.value))}
@@ -318,7 +333,7 @@ function SegmentEditor({ index, segment, onUpdate, onRemove, onMoveUp, onMoveDow
 
 // ── System Results View ──
 
-function SystemResultsView({ result, t }: { result: SystemResult; t: (key: string) => string }) {
+function SystemResultsView({ result, t, fittingDescMap }: { result: SystemResult; t: (key: string) => string; fittingDescMap: Map<string, string> }) {
   const [expandedSegments, setExpandedSegments] = useState<Set<number>>(new Set());
 
   const toggleSegment = (index: number) => {
@@ -365,7 +380,7 @@ function SystemResultsView({ result, t }: { result: SystemResult; t: (key: strin
             </div>
             {expandedSegments.has(i) && (
               <div style={{ padding: '8px 12px', border: '1px solid #eee', borderTop: 'none', borderRadius: '0 0 4px 4px' }}>
-                <SegmentResultDetail result={segResult} t={t} />
+                <SegmentResultDetail result={segResult} t={t} fittingDescMap={fittingDescMap} />
               </div>
             )}
           </div>
@@ -384,7 +399,7 @@ function SystemResultsView({ result, t }: { result: SystemResult; t: (key: strin
   );
 }
 
-function SegmentResultDetail({ result, t }: { result: SegmentResult; t: (key: string) => string }) {
+function SegmentResultDetail({ result, t, fittingDescMap }: { result: SegmentResult; t: (key: string) => string; fittingDescMap: Map<string, string> }) {
   return (
     <div>
       <ResultRow label={t('flow.velocity')} value={`${formatNum(result.velocity_m_s, 3)} ${t('unit.ms')}`} />
@@ -415,7 +430,7 @@ function SegmentResultDetail({ result, t }: { result: SegmentResult; t: (key: st
           <tbody>
             {result.fittingDetails.map((fd, i) => (
               <tr key={i} style={{ borderBottom: '1px solid #eee' }}>
-                <td style={{ padding: '3px' }}>{fd.description}</td>
+                <td style={{ padding: '3px' }}>{fittingDescMap.get(fd.id) ?? fd.description}</td>
                 <td style={{ textAlign: 'right', padding: '3px' }}>{fd.quantity}</td>
                 <td style={{ textAlign: 'right', padding: '3px' }}>{formatNum(fd.k_value, 4)}</td>
                 <td style={{ textAlign: 'right', padding: '3px' }}>{formatPa(fd.dp_pa)}</td>

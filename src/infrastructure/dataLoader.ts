@@ -78,10 +78,10 @@ export const jisData = jisJson as unknown as JisData;
 /**
  * 利用可能な継手一覧を返す（UI ドロップダウン用）
  */
-export function getAvailableFittings(): { id: string; description: string }[] {
-  const items: { id: string; description: string }[] = [];
-  for (const f of craneData.fittings) items.push({ id: f.id, description: f.description });
-  for (const e of craneData.entrances) items.push({ id: e.id, description: e.description });
-  for (const x of craneData.exits) items.push({ id: x.id, description: x.description });
+export function getAvailableFittings(): { id: string; description: string; description_ja?: string }[] {
+  const items: { id: string; description: string; description_ja?: string }[] = [];
+  for (const f of craneData.fittings) items.push({ id: f.id, description: f.description, description_ja: f.description_ja });
+  for (const e of craneData.entrances) items.push({ id: e.id, description: e.description, description_ja: e.description_ja });
+  for (const x of craneData.exits) items.push({ id: x.id, description: x.description, description_ja: x.description_ja });
   return items;
 }

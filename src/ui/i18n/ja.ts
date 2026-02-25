@@ -14,6 +14,8 @@ const ja: Record<string, string> = {
   // Pipe
   'pipe.title': '配管仕様',
   'pipe.standard': '配管規格',
+  'pipe.standard.ansi': 'ASME B36.10M (ANSI)',
+  'pipe.standard.jis_sgp': 'JIS G 3452 (SGP)',
   'pipe.nominal_size': '呼び径',
   'pipe.schedule': 'スケジュール',
   'pipe.material': '管材質',
