@@ -7,6 +7,7 @@ import { waterData, craneData, ftData, getAvailableFittings } from '@infrastruct
 import { getAvailableSizes, getAvailableSchedules, resolvePipeSpec, PipeStandardKey } from '@infrastructure/pipeSpecResolver';
 import { getAvailableMaterials, resolveMaterial } from '@infrastructure/materialResolver';
 import { calcRoute } from '@application/calcRoute';
+import { RouteViews } from '../views/RouteViews';
 
 // ── Node form state ──
 
@@ -66,22 +67,27 @@ export function RouteEditor() {
     [elbowConnection, use90LR]
   );
 
+  // Convert form state to domain RouteNode[]
+  const routeNodes: RouteNode[] = useMemo(
+    () => nodes.map(n => ({
+      id: n.id,
+      position: { x: n.x, y: n.y, z: n.z },
+      additionalFittings: n.fittingRows
+        .filter(r => r.quantity > 0)
+        .map(r => ({ fittingId: r.fittingId, quantity: r.quantity })),
+    })),
+    [nodes]
+  );
+
   // Real-time route analysis
   const analysis: RouteAnalysis | null = useMemo(() => {
-    if (nodes.length < 2) return null;
+    if (routeNodes.length < 2) return null;
     try {
-      const routeNodes: RouteNode[] = nodes.map(n => ({
-        id: n.id,
-        position: { x: n.x, y: n.y, z: n.z },
-        additionalFittings: n.fittingRows
-          .filter(r => r.quantity > 0)
-          .map(r => ({ fittingId: r.fittingId, quantity: r.quantity })),
-      }));
       return analyzeRoute({ nodes: routeNodes }, conversionConfig);
     } catch {
       return null;
     }
-  }, [nodes, conversionConfig]);
+  }, [routeNodes, conversionConfig]);
 
   // Node operations
   const addNode = () => {
@@ -122,15 +128,7 @@ export function RouteEditor() {
       const material = resolveMaterial(materialId);
       if (!material) throw new Error('Material not found');
 
-      if (nodes.length < 2) throw new Error(t('route.min_nodes'));
-
-      const routeNodes: RouteNode[] = nodes.map(n => ({
-        id: n.id,
-        position: { x: n.x, y: n.y, z: n.z },
-        additionalFittings: n.fittingRows
-          .filter(r => r.quantity > 0)
-          .map(r => ({ fittingId: r.fittingId, quantity: r.quantity })),
-      }));
+      if (routeNodes.length < 2) throw new Error(t('route.min_nodes'));
 
       const res = calcRoute(
         {
@@ -281,6 +279,11 @@ export function RouteEditor() {
 
       {/* Route analysis preview */}
       {analysis && <RoutePreview analysis={analysis} t={t} />}
+
+      {/* 3-view display */}
+      {analysis && routeNodes.length >= 2 && (
+        <RouteViews nodes={routeNodes} analysis={analysis} />
+      )}
 
       {/* Calculate button */}
       <button onClick={handleCalculate} style={{
