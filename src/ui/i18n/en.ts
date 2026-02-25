@@ -129,6 +129,13 @@ const en: Record<string, string> = {
   'view.node_label': 'N',
   'view.ground_line': 'Ground Line',
 
+  // Project (import/export)
+  'project.export': 'Export JSON',
+  'project.import': 'Import JSON',
+  'project.name_placeholder': 'Project name',
+  'project.default_name': 'Untitled Project',
+  'project.import_error': 'Import error',
+
   // Units
   'unit.m3h': 'm³/h',
   'unit.lmin': 'L/min',

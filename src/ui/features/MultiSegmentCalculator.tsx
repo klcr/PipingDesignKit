@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useImperativeHandle, forwardRef } from 'react';
 import { useTranslation } from '../i18n/context';
 import { localizedName } from '../i18n/localizedName';
 import { SystemResult, SegmentResult } from '@domain/types';
@@ -7,6 +7,7 @@ import { getAvailableSizes, getAvailableSchedules, resolvePipeSpec, PipeStandard
 import { getAvailableMaterials, resolveMaterial } from '@infrastructure/materialResolver';
 import { calcMultiSegment } from '@application/calcMultiSegment';
 import { SegmentDefinition } from '@application/types';
+import { MultiSegmentProjectData } from '@infrastructure/persistence/projectFile';
 
 interface FittingRow {
   fittingId: string;
@@ -40,19 +41,63 @@ function createDefaultSegment(): SegmentFormState {
   };
 }
 
-export function MultiSegmentCalculator() {
+function createSegmentFromData(entry: MultiSegmentProjectData['segments'][number]): SegmentFormState {
+  return {
+    id: String(++segmentIdCounter),
+    pipeStandard: entry.pipeStandard as PipeStandardKey,
+    nominalSize: entry.nominalSize,
+    schedule: entry.schedule,
+    materialId: entry.materialId,
+    pipeLength: entry.length_m,
+    elevation: entry.elevation_m,
+    fittingRows: entry.fittings.map(f => ({ fittingId: f.fittingId, quantity: f.quantity })),
+    collapsed: false,
+  };
+}
+
+export interface MultiSegmentCalculatorHandle {
+  getProjectData(): MultiSegmentProjectData;
+}
+
+export interface MultiSegmentCalculatorProps {
+  initialData?: MultiSegmentProjectData;
+}
+
+export const MultiSegmentCalculator = forwardRef<MultiSegmentCalculatorHandle, MultiSegmentCalculatorProps>(
+  function MultiSegmentCalculator({ initialData }, ref) {
   const { t, locale } = useTranslation();
 
   // System-level inputs
-  const [temperature, setTemperature] = useState(20);
-  const [flowRate, setFlowRate] = useState(10);
+  const [temperature, setTemperature] = useState(initialData?.temperature_c ?? 20);
+  const [flowRate, setFlowRate] = useState(initialData?.flowRate_m3h ?? 10);
 
   // Segment array
-  const [segments, setSegments] = useState<SegmentFormState[]>([createDefaultSegment()]);
+  const [segments, setSegments] = useState<SegmentFormState[]>(
+    initialData?.segments.map(s => createSegmentFromData(s))
+      ?? [createDefaultSegment()]
+  );
 
   // Result
   const [result, setResult] = useState<SystemResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  useImperativeHandle(ref, () => ({
+    getProjectData(): MultiSegmentProjectData {
+      return {
+        temperature_c: temperature,
+        flowRate_m3h: flowRate,
+        segments: segments.map(seg => ({
+          pipeStandard: seg.pipeStandard,
+          nominalSize: seg.nominalSize,
+          schedule: seg.schedule,
+          materialId: seg.materialId,
+          length_m: seg.pipeLength,
+          elevation_m: seg.elevation,
+          fittings: seg.fittingRows.filter(r => r.quantity > 0).map(r => ({ fittingId: r.fittingId, quantity: r.quantity })),
+        })),
+      };
+    },
+  }));
 
   const availableFittings = useMemo(() => getAvailableFittings(), []);
   const materials = useMemo(() => getAvailableMaterials(), []);
@@ -187,7 +232,7 @@ export function MultiSegmentCalculator() {
       {result && <SystemResultsView result={result} t={t} fittingDescMap={fittingDescMap} />}
     </div>
   );
-}
+});
 
 // ── Segment Editor ──
 
