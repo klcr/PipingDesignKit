@@ -1,0 +1,30 @@
+{
+  "standard": "JIS G 3452",
+  "grade": "SGP",
+  "description": "Carbon Steel Pipes for Ordinary Piping",
+  "referenceId": "jis-g3452-2019",
+  "sizes": [
+    { "dn": 6,   "nps": "1/8",   "od_mm": 10.5,  "wall_mm": 2.0, "id_mm": 6.5   },
+    { "dn": 8,   "nps": "1/4",   "od_mm": 13.8,  "wall_mm": 2.3, "id_mm": 9.2   },
+    { "dn": 10,  "nps": "3/8",   "od_mm": 17.3,  "wall_mm": 2.3, "id_mm": 12.7  },
+    { "dn": 15,  "nps": "1/2",   "od_mm": 21.7,  "wall_mm": 2.8, "id_mm": 16.1  },
+    { "dn": 20,  "nps": "3/4",   "od_mm": 27.2,  "wall_mm": 2.8, "id_mm": 21.6  },
+    { "dn": 25,  "nps": "1",     "od_mm": 34.0,  "wall_mm": 3.2, "id_mm": 27.6  },
+    { "dn": 32,  "nps": "1-1/4", "od_mm": 42.7,  "wall_mm": 3.5, "id_mm": 35.7  },
+    { "dn": 40,  "nps": "1-1/2", "od_mm": 48.6,  "wall_mm": 3.5, "id_mm": 41.6  },
+    { "dn": 50,  "nps": "2",     "od_mm": 60.5,  "wall_mm": 3.8, "id_mm": 52.9  },
+    { "dn": 65,  "nps": "2-1/2", "od_mm": 76.3,  "wall_mm": 4.2, "id_mm": 67.9  },
+    { "dn": 80,  "nps": "3",     "od_mm": 89.1,  "wall_mm": 4.2, "id_mm": 80.7  },
+    { "dn": 90,  "nps": "3-1/2", "od_mm": 101.6, "wall_mm": 4.2, "id_mm": 93.2  },
+    { "dn": 100, "nps": "4",     "od_mm": 114.3, "wall_mm": 4.5, "id_mm": 105.3 },
+    { "dn": 125, "nps": "5",     "od_mm": 139.8, "wall_mm": 4.5, "id_mm": 130.8 },
+    { "dn": 150, "nps": "6",     "od_mm": 165.2, "wall_mm": 5.0, "id_mm": 155.2 },
+    { "dn": 200, "nps": "8",     "od_mm": 216.3, "wall_mm": 5.8, "id_mm": 204.7 },
+    { "dn": 250, "nps": "10",    "od_mm": 267.4, "wall_mm": 6.6, "id_mm": 254.2 },
+    { "dn": 300, "nps": "12",    "od_mm": 318.5, "wall_mm": 6.9, "id_mm": 304.7 },
+    { "dn": 350, "nps": "14",    "od_mm": 355.6, "wall_mm": 7.9, "id_mm": 339.8 },
+    { "dn": 400, "nps": "16",    "od_mm": 406.4, "wall_mm": 7.9, "id_mm": 390.6 },
+    { "dn": 450, "nps": "18",    "od_mm": 457.2, "wall_mm": 7.9, "id_mm": 441.4 },
+    { "dn": 500, "nps": "20",    "od_mm": 508.0, "wall_mm": 7.9, "id_mm": 492.2 }
+  ]
+}

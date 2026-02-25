@@ -1,0 +1,42 @@
+{
+  "referenceId": "crane-tp410-2009",
+  "description": "Crane TP-410 L/D (equivalent length) factors. K = ldRatio × f_T",
+  "fittings": [
+    { "id": "elbow_90_std_threaded",    "type": "elbow", "description": "90° standard elbow, threaded (r/d≈1)", "ldRatio": 30,  "connection": "threaded" },
+    { "id": "elbow_90_std_welded",      "type": "elbow", "description": "90° standard elbow, welded (r/d=1)",   "ldRatio": 20,  "connection": "welded"   },
+    { "id": "elbow_90_lr_welded",       "type": "elbow", "description": "90° long radius elbow, welded (r/d=1.5)","ldRatio": 14,"connection": "welded"   },
+    { "id": "elbow_45_std_threaded",    "type": "elbow", "description": "45° standard elbow, threaded",          "ldRatio": 16,  "connection": "threaded" },
+    { "id": "elbow_45_std_welded",      "type": "elbow", "description": "45° standard elbow, welded (r/d=1)",    "ldRatio": 14,  "connection": "welded"   },
+    { "id": "return_bend_180",          "type": "elbow", "description": "180° return bend (close pattern)",       "ldRatio": 50,  "connection": "welded"   },
+    { "id": "mitre_90_1weld",           "type": "elbow", "description": "90° mitre bend, 1 weld (90° angle)",    "ldRatio": 60,  "connection": "welded"   },
+    { "id": "mitre_90_2weld",           "type": "elbow", "description": "90° mitre bend, 2 welds (45° each)",    "ldRatio": 15,  "connection": "welded"   },
+    { "id": "mitre_90_3weld",           "type": "elbow", "description": "90° mitre bend, 3 welds (30° each)",    "ldRatio": 8,   "connection": "welded"   },
+    { "id": "tee_straight",             "type": "tee",   "description": "Tee, straight-through run",              "ldRatio": 20,  "connection": "any"      },
+    { "id": "tee_branch",               "type": "tee",   "description": "Tee, flow through branch",               "ldRatio": 60,  "connection": "any"      },
+    { "id": "valve_gate_full",          "type": "valve", "description": "Gate valve, full open",                   "ldRatio": 8,   "connection": "flanged"  },
+    { "id": "valve_gate_3_4",           "type": "valve", "description": "Gate valve, 3/4 open",                   "ldRatio": 35,  "connection": "flanged"  },
+    { "id": "valve_gate_1_2",           "type": "valve", "description": "Gate valve, 1/2 open",                   "ldRatio": 160, "connection": "flanged"  },
+    { "id": "valve_gate_1_4",           "type": "valve", "description": "Gate valve, 1/4 open",                   "ldRatio": 900, "connection": "flanged"  },
+    { "id": "valve_globe_full",         "type": "valve", "description": "Globe valve, full open",                  "ldRatio": 340, "connection": "flanged"  },
+    { "id": "valve_angle_full",         "type": "valve", "description": "Angle valve, full open",                  "ldRatio": 150, "connection": "flanged"  },
+    { "id": "valve_ball_full",          "type": "valve", "description": "Ball valve, full bore, full open",        "ldRatio": 3,   "connection": "flanged"  },
+    { "id": "valve_ball_reduced",       "type": "valve", "description": "Ball valve, reduced bore",                "ldRatio": 25,  "connection": "flanged"  },
+    { "id": "valve_butterfly_full",     "type": "valve", "description": "Butterfly valve, full open",              "ldRatio": 40,  "connection": "flanged"  },
+    { "id": "valve_plug_straight",      "type": "valve", "description": "Plug valve, straight-through",            "ldRatio": 18,  "connection": "flanged"  },
+    { "id": "valve_diaphragm_full",     "type": "valve", "description": "Diaphragm valve, full open",              "ldRatio": 160, "connection": "flanged"  },
+    { "id": "valve_check_swing",        "type": "valve", "description": "Swing check valve",                       "ldRatio": 100, "connection": "flanged"  },
+    { "id": "valve_check_lift",         "type": "valve", "description": "Lift check valve",                        "ldRatio": 600, "connection": "flanged"  }
+  ],
+  "entrances": [
+    { "id": "entrance_sharp",           "description": "Sharp-edged entrance",           "k": 0.5  },
+    { "id": "entrance_inward",          "description": "Inward projecting (Borda)",      "k": 0.78 },
+    { "id": "entrance_rounded_r02",     "description": "Rounded entrance r/d=0.02",      "k": 0.28 },
+    { "id": "entrance_rounded_r04",     "description": "Rounded entrance r/d=0.04",      "k": 0.24 },
+    { "id": "entrance_rounded_r06",     "description": "Rounded entrance r/d=0.06",      "k": 0.15 },
+    { "id": "entrance_rounded_r10",     "description": "Rounded entrance r/d=0.10",      "k": 0.09 },
+    { "id": "entrance_rounded_r15",     "description": "Rounded entrance r/d≥0.15",      "k": 0.04 }
+  ],
+  "exits": [
+    { "id": "exit_all",                 "description": "Pipe exit (all geometries)",      "k": 1.0  }
+  ]
+}

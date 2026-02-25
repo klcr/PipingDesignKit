@@ -1,0 +1,26 @@
+{
+  "referenceId": "iapws-if97",
+  "fluid": "water",
+  "description": "Saturated liquid water properties by temperature",
+  "saturation_table": [
+    { "temp_c":   0, "pressure_kpa":    0.6117, "density_kg_m3": 999.8, "viscosity_pa_s": 1.792e-3, "specific_heat_j_kgk": 4217 },
+    { "temp_c":   5, "pressure_kpa":    0.8726, "density_kg_m3": 999.9, "viscosity_pa_s": 1.519e-3, "specific_heat_j_kgk": 4205 },
+    { "temp_c":  10, "pressure_kpa":    1.228,  "density_kg_m3": 999.7, "viscosity_pa_s": 1.307e-3, "specific_heat_j_kgk": 4194 },
+    { "temp_c":  15, "pressure_kpa":    1.706,  "density_kg_m3": 999.1, "viscosity_pa_s": 1.138e-3, "specific_heat_j_kgk": 4186 },
+    { "temp_c":  20, "pressure_kpa":    2.339,  "density_kg_m3": 998.2, "viscosity_pa_s": 1.002e-3, "specific_heat_j_kgk": 4182 },
+    { "temp_c":  25, "pressure_kpa":    3.170,  "density_kg_m3": 997.0, "viscosity_pa_s": 8.900e-4, "specific_heat_j_kgk": 4180 },
+    { "temp_c":  30, "pressure_kpa":    4.246,  "density_kg_m3": 995.6, "viscosity_pa_s": 7.978e-4, "specific_heat_j_kgk": 4178 },
+    { "temp_c":  40, "pressure_kpa":    7.384,  "density_kg_m3": 992.2, "viscosity_pa_s": 6.531e-4, "specific_heat_j_kgk": 4179 },
+    { "temp_c":  50, "pressure_kpa":   12.35,   "density_kg_m3": 988.0, "viscosity_pa_s": 5.468e-4, "specific_heat_j_kgk": 4181 },
+    { "temp_c":  60, "pressure_kpa":   19.94,   "density_kg_m3": 983.2, "viscosity_pa_s": 4.665e-4, "specific_heat_j_kgk": 4185 },
+    { "temp_c":  70, "pressure_kpa":   31.19,   "density_kg_m3": 977.8, "viscosity_pa_s": 4.042e-4, "specific_heat_j_kgk": 4190 },
+    { "temp_c":  80, "pressure_kpa":   47.39,   "density_kg_m3": 971.8, "viscosity_pa_s": 3.547e-4, "specific_heat_j_kgk": 4197 },
+    { "temp_c":  90, "pressure_kpa":   70.14,   "density_kg_m3": 965.3, "viscosity_pa_s": 3.147e-4, "specific_heat_j_kgk": 4205 },
+    { "temp_c": 100, "pressure_kpa":  101.3,    "density_kg_m3": 958.4, "viscosity_pa_s": 2.818e-4, "specific_heat_j_kgk": 4216 },
+    { "temp_c": 120, "pressure_kpa":  198.5,    "density_kg_m3": 943.4, "viscosity_pa_s": 2.320e-4, "specific_heat_j_kgk": 4244 },
+    { "temp_c": 140, "pressure_kpa":  361.3,    "density_kg_m3": 926.1, "viscosity_pa_s": 1.966e-4, "specific_heat_j_kgk": 4283 },
+    { "temp_c": 160, "pressure_kpa":  617.8,    "density_kg_m3": 907.4, "viscosity_pa_s": 1.704e-4, "specific_heat_j_kgk": 4340 },
+    { "temp_c": 180, "pressure_kpa": 1002.0,    "density_kg_m3": 887.0, "viscosity_pa_s": 1.499e-4, "specific_heat_j_kgk": 4417 },
+    { "temp_c": 200, "pressure_kpa": 1554.0,    "density_kg_m3": 864.7, "viscosity_pa_s": 1.339e-4, "specific_heat_j_kgk": 4505 }
+  ]
+}
