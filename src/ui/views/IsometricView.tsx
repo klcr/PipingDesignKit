@@ -41,9 +41,8 @@ export const IsometricView = forwardRef<ViewHandle, IsometricViewProps>(
   function IsometricView({ nodes, analysis }, ref) {
   const { t } = useTranslation();
   const { state, hoverNode, hoverSegment, selectNode, selectSegment, deselectAll } = useViewSync();
-  const { transform, handleWheel, handlePanStart, handlePanMove, handlePanEnd, resetTransform } = useViewTransform();
-
   const svgRef = useRef<SVGSVGElement>(null);
+  const { transform, handlePanStart, handlePanMove, handlePanEnd, resetTransform } = useViewTransform(svgRef);
 
   useImperativeHandle(ref, () => ({ resetTransform }), [resetTransform]);
 
@@ -79,10 +78,6 @@ export const IsometricView = forwardRef<ViewHandle, IsometricViewProps>(
     handlePanMove(e, svgRef.current);
   }, [handlePanMove]);
 
-  const handleSvgWheel = useCallback((e: React.WheelEvent<SVGSVGElement>) => {
-    handleWheel(e, svgRef.current);
-  }, [handleWheel]);
-
   if (nodes.length < 2) return null;
 
   // Axis guide endpoints
@@ -101,7 +96,6 @@ export const IsometricView = forwardRef<ViewHandle, IsometricViewProps>(
       onMouseMove={handleSvgMouseMove}
       onMouseUp={handlePanEnd}
       onMouseLeave={handlePanEnd}
-      onWheel={handleSvgWheel}
     >
       {/* Axis guides */}
       <g opacity={0.5}>

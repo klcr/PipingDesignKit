@@ -39,9 +39,8 @@ export const ElevationView = forwardRef<ViewHandle, ElevationViewProps>(
   function ElevationView({ nodes, analysis }, ref) {
   const { t } = useTranslation();
   const { state, hoverNode, hoverSegment, selectNode, selectSegment, deselectAll } = useViewSync();
-  const { transform, handleWheel, handlePanStart, handlePanMove, handlePanEnd, resetTransform } = useViewTransform();
-
   const svgRef = useRef<SVGSVGElement>(null);
+  const { transform, handlePanStart, handlePanMove, handlePanEnd, resetTransform } = useViewTransform(svgRef);
 
   useImperativeHandle(ref, () => ({ resetTransform }), [resetTransform]);
 
@@ -74,10 +73,6 @@ export const ElevationView = forwardRef<ViewHandle, ElevationViewProps>(
     handlePanMove(e, svgRef.current);
   }, [handlePanMove]);
 
-  const handleSvgWheel = useCallback((e: React.WheelEvent<SVGSVGElement>) => {
-    handleWheel(e, svgRef.current);
-  }, [handleWheel]);
-
   if (nodes.length < 2) return null;
 
   // Ground line at Z=0 → projectElevation maps Z=0 to y=0
@@ -95,7 +90,6 @@ export const ElevationView = forwardRef<ViewHandle, ElevationViewProps>(
       onMouseMove={handleSvgMouseMove}
       onMouseUp={handlePanEnd}
       onMouseLeave={handlePanEnd}
-      onWheel={handleSvgWheel}
     >
       {/* Ground line (Z=0) */}
       <line
