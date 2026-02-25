@@ -1,0 +1,72 @@
+{
+  "sources": [
+    {
+      "id": "crane-tp410-2009",
+      "title": "Flow of Fluids Through Valves, Fittings, and Pipe",
+      "author": "Crane Co.",
+      "edition": "Technical Paper No. 410M, 2009 Edition",
+      "isbn": "1-40052-712-0"
+    },
+    {
+      "id": "churchill-1977",
+      "title": "Friction Factor Equation Spans All Fluid Flow Regimes",
+      "author": "Churchill, S.W.",
+      "journal": "Chemical Engineering",
+      "volume": "84(24)",
+      "year": 1977,
+      "pages": "91-92"
+    },
+    {
+      "id": "darby-2001",
+      "title": "Chemical Engineering Fluid Mechanics, 2nd Edition",
+      "author": "Darby, Ron",
+      "publisher": "Marcel Dekker",
+      "year": 2001,
+      "pages": "210-211"
+    },
+    {
+      "id": "jis-g3452-2019",
+      "title": "Carbon Steel Pipes for Ordinary Piping",
+      "author": "Japanese Industrial Standards Committee",
+      "standard": "JIS G 3452",
+      "year": 2019
+    },
+    {
+      "id": "asme-b36.10m",
+      "title": "Welded and Seamless Wrought Steel Pipe",
+      "author": "ASME",
+      "standard": "ASME B36.10M"
+    },
+    {
+      "id": "asme-b36.19m",
+      "title": "Stainless Steel Pipe",
+      "author": "ASME",
+      "standard": "ASME B36.19M"
+    },
+    {
+      "id": "iapws-if97",
+      "title": "Revised Release on the IAPWS Industrial Formulation 1997",
+      "author": "International Association for the Properties of Water and Steam",
+      "year": 2012,
+      "url": "http://www.iapws.org/relguide/IF97-Rev.html"
+    },
+    {
+      "id": "moody-1944",
+      "title": "Friction Factors for Pipe Flow",
+      "author": "Moody, L.F.",
+      "journal": "Transactions of the ASME",
+      "volume": "66(8)",
+      "year": 1944,
+      "pages": "671-684"
+    },
+    {
+      "id": "swamee-jain-1976",
+      "title": "Explicit Equations for Pipe-Flow Problems",
+      "author": "Swamee, P.K. and Jain, A.K.",
+      "journal": "Journal of the Hydraulics Division, ASCE",
+      "volume": "102(5)",
+      "year": 1976,
+      "pages": "657-664"
+    }
+  ]
+}

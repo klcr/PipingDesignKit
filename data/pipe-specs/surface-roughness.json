@@ -1,0 +1,21 @@
+{
+  "referenceId": "crane-tp410-2009",
+  "materials": [
+    { "id": "carbon_steel_new",       "name": "Carbon steel (new, clean)",   "name_ja": "炭素鋼（新品）",         "roughness_mm": 0.046,  "roughness_in": 0.0018 },
+    { "id": "carbon_steel_corroded",  "name": "Carbon steel (corroded)",     "name_ja": "炭素鋼（軽度腐食）",     "roughness_mm": 0.15,   "roughness_in": 0.006  },
+    { "id": "stainless_steel",        "name": "Stainless steel (new)",       "name_ja": "ステンレス鋼（新品）",    "roughness_mm": 0.015,  "roughness_in": 0.0006 },
+    { "id": "galvanized_steel",       "name": "Galvanized steel",            "name_ja": "亜鉛メッキ鋼",           "roughness_mm": 0.15,   "roughness_in": 0.006  },
+    { "id": "cast_iron_new",          "name": "Cast iron (new, uncoated)",   "name_ja": "鋳鉄（新品、無塗装）",   "roughness_mm": 0.26,   "roughness_in": 0.010  },
+    { "id": "cast_iron_asphalted",    "name": "Cast iron (asphalt-dipped)",  "name_ja": "鋳鉄（アスファルト塗装）","roughness_mm": 0.12,   "roughness_in": 0.005  },
+    { "id": "ductile_iron",           "name": "Ductile iron (unlined)",      "name_ja": "ダクタイル鋳鉄（無内張）","roughness_mm": 0.25,   "roughness_in": 0.010  },
+    { "id": "copper",                 "name": "Copper / brass (drawn)",      "name_ja": "銅・真鍮（引抜管）",     "roughness_mm": 0.0015, "roughness_in": 0.00006},
+    { "id": "pvc",                    "name": "PVC / CPVC",                  "name_ja": "塩化ビニル管",           "roughness_mm": 0.0015, "roughness_in": 0.00006},
+    { "id": "hdpe",                   "name": "HDPE / polyethylene",         "name_ja": "高密度ポリエチレン",     "roughness_mm": 0.005,  "roughness_in": 0.0002 },
+    { "id": "frp",                    "name": "FRP / GRP (fiberglass)",      "name_ja": "FRP（繊維強化プラスチック）","roughness_mm": 0.01, "roughness_in": 0.0004 },
+    { "id": "concrete_smooth",        "name": "Concrete (smooth)",           "name_ja": "コンクリート（平滑）",   "roughness_mm": 0.3,    "roughness_in": 0.012  },
+    { "id": "rubber_lined",           "name": "Rubber-lined steel",          "name_ja": "ゴムライニング鋼管",     "roughness_mm": 0.05,   "roughness_in": 0.002  },
+    { "id": "glass_lined",            "name": "Glass-lined steel",           "name_ja": "グラスライニング鋼管",   "roughness_mm": 0.0015, "roughness_in": 0.00006},
+    { "id": "titanium",               "name": "Titanium",                    "name_ja": "チタン",                 "roughness_mm": 0.046,  "roughness_in": 0.0018 },
+    { "id": "aluminium",              "name": "Aluminium (drawn)",           "name_ja": "アルミニウム（引抜管）", "roughness_mm": 0.0015, "roughness_in": 0.00006}
+  ]
+}

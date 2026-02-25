@@ -1,0 +1,19 @@
+{
+  "referenceId": "darby-2001",
+  "description": "Darby 3-K method coefficients. K = K1/Re + Ki×(1 + Kd/D_inch^0.3)",
+  "fittings": [
+    { "id": "elbow_90_threaded_r1",   "type": "elbow", "description": "90° standard elbow, threaded (r/d≈1)",    "k1": 800,  "ki": 0.14,   "kd": 4.0 },
+    { "id": "elbow_90_welded_r1",     "type": "elbow", "description": "90° standard elbow, welded (r/d=1)",      "k1": 800,  "ki": 0.071,  "kd": 4.2 },
+    { "id": "elbow_90_lr_welded",     "type": "elbow", "description": "90° long radius elbow, welded (r/d=1.5)", "k1": 800,  "ki": 0.0648, "kd": 3.94},
+    { "id": "elbow_45_threaded",      "type": "elbow", "description": "45° standard elbow, threaded",             "k1": 500,  "ki": 0.071,  "kd": 4.2 },
+    { "id": "elbow_45_welded",        "type": "elbow", "description": "45° standard elbow, welded",               "k1": 500,  "ki": 0.052,  "kd": 4.0 },
+    { "id": "tee_straight_threaded",  "type": "tee",   "description": "Tee, straight-through, threaded",          "k1": 200,  "ki": 0.091,  "kd": 4.0 },
+    { "id": "tee_straight_welded",    "type": "tee",   "description": "Tee, straight-through, welded",            "k1": 150,  "ki": 0.052,  "kd": 4.0 },
+    { "id": "tee_branch_threaded",    "type": "tee",   "description": "Tee, branch flow, threaded",               "k1": 500,  "ki": 0.274,  "kd": 4.0 },
+    { "id": "tee_branch_welded",      "type": "tee",   "description": "Tee, branch flow, welded",                 "k1": 800,  "ki": 0.14,   "kd": 4.0 },
+    { "id": "valve_gate_full",        "type": "valve", "description": "Gate valve, full open",                     "k1": 300,  "ki": 0.037,  "kd": 3.9 },
+    { "id": "valve_globe_full",       "type": "valve", "description": "Globe valve, full open",                    "k1": 1500, "ki": 1.70,   "kd": 3.6 },
+    { "id": "valve_ball_full",        "type": "valve", "description": "Ball valve, full open",                     "k1": 300,  "ki": 0.017,  "kd": 3.5 },
+    { "id": "valve_check_swing",      "type": "valve", "description": "Swing check valve",                         "k1": 1500, "ki": 0.46,   "kd": 4.0 }
+  ]
+}
