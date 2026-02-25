@@ -128,6 +128,11 @@ const ja: Record<string, string> = {
   'view.isometric': 'アイソメ図',
   'view.node_label': 'N',
   'view.ground_line': '地盤線',
+  'view.confirm': 'ノードを確定',
+  'view.cancel': 'キャンセル',
+  'view.undo': '元に戻す',
+  'view.redo': 'やり直す',
+  'view.reset_view': 'リセット',
 
   // Project (import/export)
   'project.export': 'JSON エクスポート',

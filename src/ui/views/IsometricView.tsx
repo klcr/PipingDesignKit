@@ -5,11 +5,13 @@
  * 原点に X, Y, Z 軸ガイドを表示して空間認識を補助。
  */
 
-import { useMemo } from 'react';
+import { useMemo, useRef, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { useTranslation } from '../i18n/context';
 import { RouteNode, RouteAnalysis } from '@domain/route/types';
-import { projectIsometric, calcBoundingBox, calcViewBox, Point2D } from './PipeViewRenderer';
+import { projectIsometric, calcBoundingBox, calcViewBox, applyTransform, Point2D } from './PipeViewRenderer';
 import { useViewSync } from './ViewSyncContext';
+import { useViewTransform } from '../hooks/useViewTransform';
+import { ViewHandle } from './PlanView';
 
 interface IsometricViewProps {
   nodes: readonly RouteNode[];
@@ -35,18 +37,23 @@ const COLOR_AXIS_X = '#cc4444';
 const COLOR_AXIS_Y = '#44aa44';
 const COLOR_AXIS_Z = '#4444cc';
 
-export function IsometricView({ nodes, analysis }: IsometricViewProps) {
+export const IsometricView = forwardRef<ViewHandle, IsometricViewProps>(
+  function IsometricView({ nodes, analysis }, ref) {
   const { t } = useTranslation();
-  const { state, hoverNode, hoverSegment, selectNode, selectSegment } = useViewSync();
+  const { state, hoverNode, hoverSegment, selectNode, selectSegment, deselectAll } = useViewSync();
+  const { transform, handleWheel, handlePanStart, handlePanMove, handlePanEnd, resetTransform } = useViewTransform();
+
+  const svgRef = useRef<SVGSVGElement>(null);
+
+  useImperativeHandle(ref, () => ({ resetTransform }), [resetTransform]);
 
   const projected = useMemo(
     () => nodes.map(n => projectIsometric(n.position)),
     [nodes]
   );
 
-  const viewBox = useMemo(() => {
+  const baseViewBox = useMemo(() => {
     if (projected.length === 0) return '0 0 10 10';
-    // Include origin axis guides in bounding box
     const origin = projectIsometric({ x: 0, y: 0, z: 0 });
     const axisX = projectIsometric({ x: AXIS_LENGTH, y: 0, z: 0 });
     const axisY = projectIsometric({ x: 0, y: AXIS_LENGTH, z: 0 });
@@ -56,6 +63,26 @@ export function IsometricView({ nodes, analysis }: IsometricViewProps) {
     return calcViewBox(bbox, PADDING);
   }, [projected]);
 
+  const viewBox = useMemo(
+    () => applyTransform(baseViewBox, transform),
+    [baseViewBox, transform]
+  );
+
+  const handleSvgMouseDown = useCallback((e: React.MouseEvent<SVGSVGElement>) => {
+    if (e.target === svgRef.current) {
+      deselectAll();
+      handlePanStart(e);
+    }
+  }, [deselectAll, handlePanStart]);
+
+  const handleSvgMouseMove = useCallback((e: React.MouseEvent<SVGSVGElement>) => {
+    handlePanMove(e, svgRef.current);
+  }, [handlePanMove]);
+
+  const handleSvgWheel = useCallback((e: React.WheelEvent<SVGSVGElement>) => {
+    handleWheel(e, svgRef.current);
+  }, [handleWheel]);
+
   if (nodes.length < 2) return null;
 
   // Axis guide endpoints
@@ -63,9 +90,19 @@ export function IsometricView({ nodes, analysis }: IsometricViewProps) {
   const axisX = projectIsometric({ x: AXIS_LENGTH, y: 0, z: 0 });
   const axisY = projectIsometric({ x: 0, y: AXIS_LENGTH, z: 0 });
   const axisZ = projectIsometric({ x: 0, y: 0, z: AXIS_LENGTH });
+  const isDragging = state.isDragging;
 
   return (
-    <svg viewBox={viewBox} style={{ width: '100%', height: '100%', background: '#fafafa' }}>
+    <svg
+      ref={svgRef}
+      viewBox={viewBox}
+      style={{ width: '100%', height: '100%', background: '#fafafa' }}
+      onMouseDown={handleSvgMouseDown}
+      onMouseMove={handleSvgMouseMove}
+      onMouseUp={handlePanEnd}
+      onMouseLeave={handlePanEnd}
+      onWheel={handleSvgWheel}
+    >
       {/* Axis guides */}
       <g opacity={0.5}>
         <line x1={origin.x} y1={origin.y} x2={axisX.x} y2={axisX.y}
@@ -102,9 +139,9 @@ export function IsometricView({ nodes, analysis }: IsometricViewProps) {
               strokeWidth={strokeWidth}
               strokeLinecap="round"
               style={{ cursor: 'pointer' }}
-              onMouseEnter={() => hoverSegment(i)}
-              onMouseLeave={() => hoverSegment(null)}
-              onClick={() => selectSegment(i)}
+              onMouseEnter={() => !isDragging && hoverSegment(i)}
+              onMouseLeave={() => !isDragging && hoverSegment(null)}
+              onClick={(e) => { if (!isDragging) { e.stopPropagation(); selectSegment(i); } }}
             />
             <DimensionLabel from={from} to={to} length={run.length_m} />
           </g>
@@ -132,19 +169,21 @@ export function IsometricView({ nodes, analysis }: IsometricViewProps) {
       {projected.map((pos, i) => {
         const isHovered = state.hoveredNodeIndex === i;
         const isSelected = state.selectedNodeIndex === i;
+        const isBeingDragged = state.draggingNodeIndex === i;
         const color = isSelected ? COLOR_NODE_SELECTED : isHovered ? COLOR_NODE_HOVER : COLOR_NODE;
         const radius = isSelected ? NODE_RADIUS * 1.5 : isHovered ? NODE_RADIUS * 1.3 : NODE_RADIUS;
 
         return (
           <g key={`node-${i}`}
             style={{ cursor: 'pointer' }}
-            onMouseEnter={() => hoverNode(i)}
-            onMouseLeave={() => hoverNode(null)}
-            onClick={() => selectNode(i)}
+            onMouseEnter={() => !isDragging && hoverNode(i)}
+            onMouseLeave={() => !isDragging && hoverNode(null)}
+            onClick={(e) => { if (!isDragging) { e.stopPropagation(); selectNode(i); } }}
           >
             <circle
               cx={pos.x} cy={pos.y} r={radius}
               fill="white" stroke={color} strokeWidth={PIPE_STROKE * 0.8}
+              strokeDasharray={isBeingDragged ? `${PIPE_STROKE * 2} ${PIPE_STROKE}` : undefined}
             />
             <text
               x={pos.x} y={pos.y + FONT_SIZE * 0.35}
@@ -161,7 +200,7 @@ export function IsometricView({ nodes, analysis }: IsometricViewProps) {
       })}
     </svg>
   );
-}
+});
 
 function DimensionLabel({ from, to, length }: { from: Point2D; to: Point2D; length: number }) {
   const mx = (from.x + to.x) / 2;

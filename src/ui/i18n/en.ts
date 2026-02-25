@@ -128,6 +128,11 @@ const en: Record<string, string> = {
   'view.isometric': 'Isometric View',
   'view.node_label': 'N',
   'view.ground_line': 'Ground Line',
+  'view.confirm': 'Confirm Nodes',
+  'view.cancel': 'Cancel',
+  'view.undo': 'Undo',
+  'view.redo': 'Redo',
+  'view.reset_view': 'Reset',
 
   // Project (import/export)
   'project.export': 'Export JSON',

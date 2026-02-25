@@ -1,4 +1,4 @@
-import { useState, useMemo, useImperativeHandle, forwardRef } from 'react';
+import { useState, useMemo, useImperativeHandle, useCallback, useEffect, forwardRef } from 'react';
 import { useTranslation } from '../i18n/context';
 import { localizedName } from '../i18n/localizedName';
 import { SystemResult, SegmentResult } from '@domain/types';
@@ -10,6 +10,7 @@ import { getAvailableMaterials, resolveMaterial } from '@infrastructure/material
 import { calcRoute } from '@application/calcRoute';
 import { RouteViews } from '../views/RouteViews';
 import { RouteProjectData } from '@infrastructure/persistence/projectFile';
+import { useUndoableNodes } from '../hooks/useUndoableNodes';
 
 // ── Node form state ──
 
@@ -72,11 +73,22 @@ export const RouteEditor = forwardRef<RouteEditorHandle, RouteEditorProps>(
   );
   const [use90LR, setUse90LR] = useState(initialData?.use90LongRadius ?? true);
 
-  // Node array
-  const [nodes, setNodes] = useState<NodeFormState[]>(
+  // Node array with undo/redo support
+  const initialNodes = useMemo(() =>
     initialData?.nodes.map(n => createNodeFromData(n))
-      ?? [createDefaultNode(0, 0, 0), createDefaultNode(10, 0, 0)]
+      ?? [createDefaultNode(0, 0, 0), createDefaultNode(10, 0, 0)],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
   );
+
+  const {
+    nodes, setNodes,
+    undo, redo, canUndo, canRedo,
+    hasChanges, beginBatch, commitBatch, resetHistory,
+  } = useUndoableNodes<NodeFormState[]>(initialNodes);
+
+  // Baseline for confirm/cancel
+  const [confirmedNodes, setConfirmedNodes] = useState<NodeFormState[]>(initialNodes);
 
   // Result
   const [result, setResult] = useState<SystemResult | null>(null);
@@ -172,6 +184,49 @@ export const RouteEditor = forwardRef<RouteEditorHandle, RouteEditorProps>(
       return next;
     });
   };
+
+  // ── Drag / Confirm / Cancel handlers ──
+
+  const handleNodeDrag = useCallback((index: number, x: number, y: number) => {
+    setNodes((prev: NodeFormState[]) => {
+      const next = [...prev];
+      next[index] = { ...next[index], x, y };
+      return next;
+    });
+  }, [setNodes]);
+
+  const handleDragStart = useCallback(() => {
+    beginBatch();
+  }, [beginBatch]);
+
+  const handleDragEnd = useCallback(() => {
+    commitBatch();
+  }, [commitBatch]);
+
+  const handleConfirm = useCallback(() => {
+    setConfirmedNodes([...nodes]);
+    resetHistory(nodes);
+  }, [nodes, resetHistory]);
+
+  const handleCancel = useCallback(() => {
+    resetHistory(confirmedNodes);
+  }, [confirmedNodes, resetHistory]);
+
+  // Ctrl+Z / Ctrl+Y keyboard shortcuts
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        undo();
+      }
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+        e.preventDefault();
+        redo();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [undo, redo]);
 
   const handleCalculate = () => {
     setError(null);
@@ -343,7 +398,20 @@ export const RouteEditor = forwardRef<RouteEditorHandle, RouteEditorProps>(
 
       {/* 3-view display */}
       {analysis && routeNodes.length >= 2 && (
-        <RouteViews nodes={routeNodes} analysis={analysis} />
+        <RouteViews
+          nodes={routeNodes}
+          analysis={analysis}
+          onNodeDrag={handleNodeDrag}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+          hasChanges={hasChanges}
+          onConfirm={handleConfirm}
+          onCancel={handleCancel}
+          canUndo={canUndo}
+          canRedo={canRedo}
+          onUndo={undo}
+          onRedo={redo}
+        />
       )}
 
       {/* Calculate button */}
