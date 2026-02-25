@@ -119,6 +119,14 @@ const ja: Record<string, string> = {
   'route.no_elbows': 'エルボなし',
   'route.min_nodes': 'ルートには2ノード以上が必要です',
 
+  // Views
+  'view.title': '配管ルートビュー',
+  'view.plan': '平面図 (X-Y)',
+  'view.elevation': '立面図 (X-Z)',
+  'view.isometric': 'アイソメ図',
+  'view.node_label': 'N',
+  'view.ground_line': '地盤線',
+
   // Units
   'unit.m3h': 'm³/h',
   'unit.lmin': 'L/min',

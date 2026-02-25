@@ -119,6 +119,14 @@ const en: Record<string, string> = {
   'route.no_elbows': 'No elbows',
   'route.min_nodes': 'At least 2 nodes are required',
 
+  // Views
+  'view.title': 'Pipe Route Views',
+  'view.plan': 'Plan View (X-Y)',
+  'view.elevation': 'Elevation View (X-Z)',
+  'view.isometric': 'Isometric View',
+  'view.node_label': 'N',
+  'view.ground_line': 'Ground Line',
+
   // Units
   'unit.m3h': 'm³/h',
   'unit.lmin': 'L/min',
