@@ -47,9 +47,8 @@ export const PlanView = forwardRef<ViewHandle, PlanViewProps>(
   function PlanView({ nodes, analysis, onNodeDrag, onDragStart, onDragEnd }, ref) {
   const { t } = useTranslation();
   const { state, hoverNode, hoverSegment, selectNode, selectSegment, startDrag, endDrag, deselectAll } = useViewSync();
-  const { transform, handleWheel, handlePanStart, handlePanMove, handlePanEnd, resetTransform } = useViewTransform();
-
   const svgRef = useRef<SVGSVGElement>(null);
+  const { transform, handlePanStart, handlePanMove, handlePanEnd, resetTransform } = useViewTransform(svgRef);
   const dragRef = useRef<{
     index: number;
     startClientX: number;
@@ -149,10 +148,6 @@ export const PlanView = forwardRef<ViewHandle, PlanViewProps>(
     }
   }, [deselectAll, handlePanStart]);
 
-  const handleSvgWheel = useCallback((e: React.WheelEvent<SVGSVGElement>) => {
-    handleWheel(e, svgRef.current);
-  }, [handleWheel]);
-
   if (nodes.length < 2) return null;
 
   const isDragging = state.isDragging;
@@ -167,7 +162,6 @@ export const PlanView = forwardRef<ViewHandle, PlanViewProps>(
       onMouseMove={handleSvgMouseMove}
       onMouseUp={handleSvgMouseUp}
       onMouseLeave={handleSvgMouseUp}
-      onWheel={handleSvgWheel}
     >
       {/* Pipe segments */}
       {analysis.straightRuns.map((run, i) => {
