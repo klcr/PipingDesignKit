@@ -1,0 +1,11 @@
+/* Minimal global responsive rules */
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; overflow-x: hidden; }
+
+/* Node table horizontal scroll on mobile */
+@media (max-width: 639px) {
+  .node-table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}

@@ -1,5 +1,6 @@
 import { useState, useMemo, useImperativeHandle, forwardRef } from 'react';
 import { useTranslation } from '../i18n/context';
+import { useIsMobile } from '../hooks/useBreakpoint';
 import { localizedName } from '../i18n/localizedName';
 import { Section, Field, ResultRow, inputStyle } from '../components/FormLayout';
 import { formatNum, formatPa } from '../components/formatters';
@@ -154,8 +155,10 @@ export const PipeLossCalculator = forwardRef<PipeLossCalculatorHandle, PipeLossC
     setFittingRows(updated);
   };
 
+  const isMobile = useIsMobile();
+
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '12px' : '20px' }}>
         {/* Left column: inputs */}
         <div>
           {/* Fluid */}

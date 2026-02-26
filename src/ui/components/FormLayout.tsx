@@ -6,6 +6,7 @@
  */
 
 import type React from 'react';
+import { useIsMobile } from '../hooks/useBreakpoint';
 
 /** セクション — 枠線付きグループ */
 export function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -17,12 +18,21 @@ export function Section({ title, children }: { title: string; children: React.Re
   );
 }
 
-/** フィールド — ラベル + 入力の水平レイアウト */
+/** フィールド — ラベル + 入力のレスポンシブレイアウト */
 export function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  const isMobile = useIsMobile();
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-      <label style={{ width: '120px', fontSize: '0.9em', color: '#555' }}>{label}</label>
-      {children}
+    <div style={{
+      display: 'flex',
+      flexDirection: isMobile ? 'column' : 'row',
+      alignItems: isMobile ? 'stretch' : 'center',
+      gap: isMobile ? '2px' : '8px',
+      marginBottom: '6px',
+    }}>
+      <label style={{ width: isMobile ? 'auto' : '120px', fontSize: '0.9em', color: '#555' }}>{label}</label>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
+        {children}
+      </div>
     </div>
   );
 }

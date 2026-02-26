@@ -1,5 +1,6 @@
 import { useState, useMemo, useImperativeHandle, forwardRef } from 'react';
 import { useTranslation } from '../i18n/context';
+import { useIsDesktop } from '../hooks/useBreakpoint';
 import { localizedName } from '../i18n/localizedName';
 import { Section, Field, ResultRow, inputStyle, smallBtnStyle } from '../components/FormLayout';
 import { formatNum, formatPa } from '../components/formatters';
@@ -77,6 +78,7 @@ export interface MultiSegmentCalculatorProps {
 export const MultiSegmentCalculator = forwardRef<MultiSegmentCalculatorHandle, MultiSegmentCalculatorProps>(
   function MultiSegmentCalculator({ initialData, onSendToPump }, ref) {
   const { t, locale } = useTranslation();
+  const isDesktop = useIsDesktop();
 
   // System-level inputs
   const [fluidId, setFluidId] = useState<FluidId>((initialData?.fluidId as FluidId) ?? 'water');
@@ -199,8 +201,8 @@ export const MultiSegmentCalculator = forwardRef<MultiSegmentCalculatorHandle, M
     }
   };
 
-  return (
-    <div>
+  const inputArea = (
+    <>
       {/* System-level inputs */}
       <Section title={t('system.flow_conditions')}>
         <Field label={t('fluid.type')}>
@@ -277,10 +279,18 @@ export const MultiSegmentCalculator = forwardRef<MultiSegmentCalculatorHandle, M
       }}>
         {t('action.calculate')}
       </button>
+    </>
+  );
 
-      {/* Results */}
-      {error && <div style={{ color: 'red', marginTop: '12px', padding: '8px' }}>{error}</div>}
+  const resultsArea = (
+    <>
+      {error && <div style={{ color: 'red', marginTop: isDesktop ? '0' : '12px', padding: '8px' }}>{error}</div>}
       {result && <SystemResultsView result={result} t={t} fittingDescMap={fittingDescMap} />}
+      {!result && !error && isDesktop && (
+        <Section title={t('system.summary')}>
+          <p style={{ color: '#999', fontSize: '0.9em' }}>{t('action.calculate')}...</p>
+        </Section>
+      )}
 
       {result && onSendToPump && (
         <button
@@ -302,6 +312,24 @@ export const MultiSegmentCalculator = forwardRef<MultiSegmentCalculatorHandle, M
           {t('action.send_to_pump')}
         </button>
       )}
+    </>
+  );
+
+  if (isDesktop) {
+    return (
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '20px', alignItems: 'start' }}>
+        <div>{inputArea}</div>
+        <div style={{ position: 'sticky', top: '20px', maxHeight: '90vh', overflowY: 'auto' }}>
+          {resultsArea}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      {inputArea}
+      {resultsArea}
     </div>
   );
 });

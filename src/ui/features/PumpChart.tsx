@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useTranslation } from '../i18n/context';
+import { useIsMobile, useIsDesktop } from '../hooks/useBreakpoint';
 import { localizedName } from '../i18n/localizedName';
 import { Section, Field, ResultRow, inputStyle } from '../components/FormLayout';
 import { formatNum } from '../components/formatters';
@@ -34,6 +35,8 @@ interface PumpChartProps {
 
 export function PumpChart({ initialInput, onInputConsumed }: PumpChartProps) {
   const { t, locale } = useTranslation();
+  const isMobile = useIsMobile();
+  const isDesktop = useIsDesktop();
 
   // Fluid
   const [fluidId, setFluidId] = useState<FluidId>('water');
@@ -164,7 +167,7 @@ export function PumpChart({ initialInput, onInputConsumed }: PumpChartProps) {
         </div>
       </Section>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '12px' : '16px' }}>
         <div>
           {/* Fluid */}
           <Section title={t('fluid.title')}>
@@ -333,6 +336,7 @@ export function PumpChart({ initialInput, onInputConsumed }: PumpChartProps) {
           resistanceCurve={resistanceCurve}
           operatingPoint={operatingPoint}
           t={t}
+          isDesktop={isDesktop}
         />
       </Section>
     </div>
@@ -348,7 +352,7 @@ interface ChartProps {
   t: (key: string) => string;
 }
 
-function PumpPerformanceChart({ pumpCurve, resistanceCurve, operatingPoint, t }: ChartProps) {
+function PumpPerformanceChart({ pumpCurve, resistanceCurve, operatingPoint, t, isDesktop }: ChartProps & { isDesktop?: boolean }) {
   const W = 600;
   const H = 400;
   const PAD = { top: 30, right: 80, bottom: 50, left: 60 };
@@ -397,7 +401,7 @@ function PumpPerformanceChart({ pumpCurve, resistanceCurve, operatingPoint, t }:
   return (
     <svg
       viewBox={`0 0 ${W} ${H}`}
-      style={{ width: '100%', maxWidth: '700px', border: '1px solid #ddd', borderRadius: '8px', background: '#fff' }}
+      style={{ width: '100%', maxWidth: isDesktop ? undefined : '700px', border: '1px solid #ddd', borderRadius: '8px', background: '#fff' }}
     >
       {/* Grid */}
       {xTicks.map(q => (

@@ -8,6 +8,7 @@
 
 import { useRef } from 'react';
 import { useTranslation } from '../i18n/context';
+import { useIsMobile } from '../hooks/useBreakpoint';
 import { RouteNode, RouteAnalysis } from '@domain/route/types';
 import { ViewSyncProvider } from './ViewSyncContext';
 import { PlanView, ViewHandle } from './PlanView';
@@ -36,6 +37,7 @@ export function RouteViews({
   canUndo, canRedo, onUndo, onRedo,
 }: RouteViewsProps) {
   const { t } = useTranslation();
+  const isMobile = useIsMobile();
 
   const planRef = useRef<ViewHandle>(null);
   const elevRef = useRef<ViewHandle>(null);
@@ -91,7 +93,7 @@ export function RouteViews({
       <ViewSyncProvider>
         <div style={{
           display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
+          gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
           gap: '8px',
         }}>
           {/* Plan View (top-left) */}
