@@ -4,6 +4,7 @@ import { LanguageSwitcher } from './ui/components/LanguageSwitcher';
 import { PipeLossCalculator, PipeLossCalculatorHandle } from './ui/features/PipeLossCalculator';
 import { MultiSegmentCalculator, MultiSegmentCalculatorHandle } from './ui/features/MultiSegmentCalculator';
 import { RouteEditor, RouteEditorHandle } from './ui/features/RouteEditor';
+import { PumpChart } from './ui/features/PumpChart';
 import {
   ProjectFile,
   SingleSegmentProjectData,
@@ -18,7 +19,7 @@ import {
   createRouteProject,
 } from './infrastructure/persistence/fileIO';
 
-type TabKey = 'single' | 'multi' | 'route';
+type TabKey = 'single' | 'multi' | 'route' | 'pump';
 
 function AppContent() {
   const { t } = useTranslation();
@@ -123,11 +124,13 @@ function AppContent() {
         <TabButton label={t('tab.single')} active={activeTab === 'single'} onClick={() => setActiveTab('single')} />
         <TabButton label={t('tab.multi')} active={activeTab === 'multi'} onClick={() => setActiveTab('multi')} />
         <TabButton label={t('tab.route')} active={activeTab === 'route'} onClick={() => setActiveTab('route')} />
+        <TabButton label={t('tab.pump')} active={activeTab === 'pump'} onClick={() => setActiveTab('pump')} />
       </div>
 
       {activeTab === 'single' && <PipeLossCalculator key={`single-${mountKey}`} ref={singleRef} initialData={singleInitial} />}
       {activeTab === 'multi' && <MultiSegmentCalculator key={`multi-${mountKey}`} ref={multiRef} initialData={multiInitial} />}
       {activeTab === 'route' && <RouteEditor key={`route-${mountKey}`} ref={routeRef} initialData={routeInitial} />}
+      {activeTab === 'pump' && <PumpChart />}
     </div>
   );
 }

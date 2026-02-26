@@ -6,14 +6,19 @@
  */
 
 import { WaterData } from '@domain/fluid/waterProperties';
+import { FluidTableData } from '@domain/fluid/fluidProperties';
 import { CraneData, FtData } from '@domain/fittings/fittingLoss';
 
 import waterJson from '@data/fluid-properties/water.json';
+import seawaterJson from '@data/fluid-properties/seawater.json';
+import eg30Json from '@data/fluid-properties/ethylene-glycol-30.json';
+import eg50Json from '@data/fluid-properties/ethylene-glycol-50.json';
 import craneJson from '@data/fittings-db/crane-tp410.json';
 import ftJson from '@data/fittings-db/ft-values.json';
 import roughnessJson from '@data/pipe-specs/surface-roughness.json';
 import ansiJson from '@data/pipe-specs/ansi-b36.10m.json';
 import jisJson from '@data/pipe-specs/jis-g3452-sgp.json';
+import pumpJson from '@data/pump-curves/sample-centrifugal.json';
 
 // ── データ形状型（JSON スキーマに対応） ──
 
@@ -64,6 +69,28 @@ export interface RoughnessData {
   readonly materials: readonly RoughnessMaterial[];
 }
 
+// ── ポンプカーブ型 ──
+
+export interface PumpCurvePoint {
+  readonly flow_m3h: number;
+  readonly head_m: number;
+  readonly efficiency_pct: number;
+  readonly npshr_m: number;
+}
+
+export interface PumpCurveData {
+  readonly referenceId: string;
+  readonly pumpId: string;
+  readonly manufacturer: string;
+  readonly model: string;
+  readonly description: string;
+  readonly description_ja?: string;
+  readonly rated_speed_rpm: number;
+  readonly suction_nps: string;
+  readonly discharge_nps: string;
+  readonly performance_curve: readonly PumpCurvePoint[];
+}
+
 // ── 型キャスト済みデータエクスポート ──
 
 export const waterData = waterJson as unknown as WaterData;
@@ -72,6 +99,75 @@ export const ftData = ftJson as unknown as FtData;
 export const roughnessData = roughnessJson as unknown as RoughnessData;
 export const ansiData = ansiJson as unknown as AnsiData;
 export const jisData = jisJson as unknown as JisData;
+export const samplePumpData = pumpJson as unknown as PumpCurveData;
+
+// ── 流体データレジストリ ──
+
+export type FluidId = 'water' | 'seawater' | 'ethylene_glycol_30' | 'ethylene_glycol_50';
+
+interface FluidEntry {
+  readonly id: FluidId;
+  readonly name: string;
+  readonly name_ja: string;
+  readonly data: FluidTableData;
+  readonly tempRange: { min: number; max: number };
+}
+
+const fluidRegistry: readonly FluidEntry[] = [
+  {
+    id: 'water',
+    name: 'Water',
+    name_ja: '水',
+    data: waterJson as unknown as FluidTableData,
+    tempRange: { min: 0, max: 200 },
+  },
+  {
+    id: 'seawater',
+    name: 'Seawater (3.5%)',
+    name_ja: '海水 (3.5%)',
+    data: seawaterJson as unknown as FluidTableData,
+    tempRange: { min: 0, max: 80 },
+  },
+  {
+    id: 'ethylene_glycol_30',
+    name: 'Ethylene Glycol 30%',
+    name_ja: 'エチレングリコール 30%',
+    data: eg30Json as unknown as FluidTableData,
+    tempRange: { min: -10, max: 100 },
+  },
+  {
+    id: 'ethylene_glycol_50',
+    name: 'Ethylene Glycol 50%',
+    name_ja: 'エチレングリコール 50%',
+    data: eg50Json as unknown as FluidTableData,
+    tempRange: { min: -30, max: 100 },
+  },
+];
+
+/**
+ * 利用可能な流体一覧を返す（UI ドロップダウン用）
+ */
+export function getAvailableFluids(): readonly FluidEntry[] {
+  return fluidRegistry;
+}
+
+/**
+ * 流体IDから流体データを取得する
+ */
+export function getFluidData(fluidId: FluidId): FluidTableData {
+  const entry = fluidRegistry.find(f => f.id === fluidId);
+  if (!entry) throw new Error(`Unknown fluid: ${fluidId}`);
+  return entry.data;
+}
+
+/**
+ * 流体IDから温度範囲を取得する
+ */
+export function getFluidTempRange(fluidId: FluidId): { min: number; max: number } {
+  const entry = fluidRegistry.find(f => f.id === fluidId);
+  if (!entry) throw new Error(`Unknown fluid: ${fluidId}`);
+  return entry.tempRange;
+}
 
 // ── 継手セレクタ用ヘルパー ──
 

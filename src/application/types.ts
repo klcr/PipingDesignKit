@@ -5,7 +5,7 @@
  * application/ は domain/ のみに依存する。
  */
 
-import { PipeSpec, PipeMaterial, FittingInput } from '@domain/types';
+import { PipeSpec, PipeMaterial, FittingInput, FluidProperties } from '@domain/types';
 import { PipeRoute, RouteConversionConfig } from '@domain/route/types';
 
 /** 単セグメント計算のユースケース入力 */
@@ -17,6 +17,7 @@ export interface CalcSingleSegmentInput {
   readonly length_m: number;
   readonly elevation_m: number;
   readonly fittings: FittingInput[];
+  readonly fluid?: FluidProperties;  // 事前に解決済みの流体物性（指定時は temperature_c を無視）
 }
 
 /** マルチセグメント計算の個別セグメント定義 */
@@ -33,6 +34,7 @@ export interface CalcMultiSegmentInput {
   readonly temperature_c: number;      // 系統共通（同一流体）
   readonly flowRate_m3h: number;       // 系統共通（直列 = 質量保存）
   readonly segments: SegmentDefinition[];
+  readonly fluid?: FluidProperties;    // 事前に解決済みの流体物性（指定時は temperature_c を無視）
 }
 
 /** ルート計算のユースケース入力 */
@@ -43,4 +45,5 @@ export interface CalcRouteInput {
   readonly pipe: PipeSpec;              // ルート全体で共通
   readonly material: PipeMaterial;      // ルート全体で共通
   readonly conversionConfig: RouteConversionConfig;
+  readonly fluid?: FluidProperties;    // 事前に解決済みの流体物性（指定時は temperature_c を無視）
 }
