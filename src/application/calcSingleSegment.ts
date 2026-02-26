@@ -10,7 +10,7 @@
 import { SegmentInput, SegmentResult } from '@domain/types';
 import { getWaterProperties, WaterData } from '@domain/fluid/waterProperties';
 import { calcSegmentPressureDrop } from '@domain/system/pressureDrop';
-import { CraneData, FtData } from '@domain/fittings/fittingLoss';
+import { Darby3KData, EntranceExitData } from '@domain/fittings/fittingLoss';
 import { flowRateToM3s } from '@domain/system/unitConversion';
 import { CalcSingleSegmentInput } from './types';
 
@@ -19,15 +19,15 @@ import { CalcSingleSegmentInput } from './types';
  *
  * @param input - ユーザー入力（pipe, material は解決済み）
  * @param waterData - 水物性データ
- * @param craneData - Crane TP-410 継手データ
- * @param ftData - 完全乱流摩擦係数データ
+ * @param darby3kData - Darby 3-K 継手データ
+ * @param entranceExitData - 入口/出口K値データ
  * @returns SegmentResult
  */
 export function calcSingleSegment(
   input: CalcSingleSegmentInput,
   waterData: WaterData,
-  craneData: CraneData,
-  ftData: FtData
+  darby3kData: Darby3KData,
+  entranceExitData: EntranceExitData
 ): SegmentResult {
   // 1. 流体物性を取得（input.fluid 指定時はそれを使用、なければ水物性テーブルから補間）
   const fluid = input.fluid ?? getWaterProperties(input.temperature_c, waterData);
@@ -44,5 +44,5 @@ export function calcSingleSegment(
   };
 
   // 3. ドメイン計算を実行
-  return calcSegmentPressureDrop(segmentInput, craneData, ftData);
+  return calcSegmentPressureDrop(segmentInput, darby3kData, entranceExitData);
 }

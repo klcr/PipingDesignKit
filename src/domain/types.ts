@@ -60,7 +60,7 @@ export interface PipeMaterial {
 
 // ── 継手情報（計算済み） ──
 
-export type KValueMethod = 'crane_ld' | '3k' | 'fixed_k' | 'cv';
+export type KValueMethod = '3k' | 'fixed_k' | 'cv';
 
 export interface FittingResult {
   readonly id: string;

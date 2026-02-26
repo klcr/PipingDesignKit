@@ -1,7 +1,7 @@
 /**
  * 継手損失係数 K 値の計算
  *
- * - Crane L/D法: K = f_T × (L/D)
+ * - L/D法: K = f_T × (L/D)
  * - Darby 3-K法: K = K₁/Re + K_i × (1 + K_d/D^0.3)
  * - Cv変換: K = 894 × d⁴ / Cv² (d in inches)
  * - 固定K: 入口・出口など（パイプサイズ非依存）
@@ -9,24 +9,18 @@
 
 import { GRAVITY, Reference } from '../types';
 
-const CRANE_REF: Reference = {
-  source: 'Crane TP-410',
-  page: 'A-26 to A-29',
-  equation: 'K = f_T × (L/D)',
-};
-
 const DARBY_3K_REF: Reference = {
   source: 'Darby, 2001',
   equation: 'K = K₁/Re + K_i×(1 + K_d/D^0.3)',
 };
 
 const CV_REF: Reference = {
-  source: 'Crane TP-410',
+  source: 'ISA-75.01 / IEC 60534',
   equation: 'K = 894 × d⁴ / Cv²',
 };
 
 /**
- * Crane L/D法でK値を計算
+ * L/D法でK値を計算
  * K = f_T × (L/D)
  *
  * @param ldRatio L/D比（継手固有の定数）
@@ -102,4 +96,4 @@ export function calcTotalFittingLoss(
   return { totalK, dp_pa, head_m };
 }
 
-export { CRANE_REF, DARBY_3K_REF, CV_REF };
+export { DARBY_3K_REF, CV_REF };

@@ -64,7 +64,7 @@ export function classifyAngle(
 }
 
 /**
- * 標準角度 + 接続方式 → Crane TP-410 の fitting ID にマッピング
+ * 標準角度 + 接続方式 → fitting ID にマッピング
  *
  * @returns fitting ID。0° (直線) やマッピング不可の場合は null
  */

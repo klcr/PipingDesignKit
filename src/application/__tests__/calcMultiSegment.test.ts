@@ -4,15 +4,15 @@ import { calcSingleSegment } from '../calcSingleSegment';
 import { CalcMultiSegmentInput, SegmentDefinition } from '../types';
 import { PipeSpec, PipeMaterial } from '@domain/types';
 import { WaterData } from '@domain/fluid/waterProperties';
-import { CraneData, FtData } from '@domain/fittings/fittingLoss';
+import { Darby3KData, EntranceExitData } from '@domain/fittings/fittingLoss';
 
 import waterJson from '@data/fluid-properties/water.json';
-import craneJson from '@data/fittings-db/crane-tp410.json';
-import ftJson from '@data/fittings-db/ft-values.json';
+import darby3kJson from '@data/fittings-db/darby-3k.json';
+import entranceExitJson from '@data/fittings-db/entrance-exit-k.json';
 
 const waterData = waterJson as unknown as WaterData;
-const craneData = craneJson as unknown as CraneData;
-const ftData = ftJson as unknown as FtData;
+const darby3kData = darby3kJson as unknown as Darby3KData;
+const entranceExitData = entranceExitJson as unknown as EntranceExitData;
 
 const pipe2inch: PipeSpec = {
   standard: 'ASME B36.10M',
@@ -38,7 +38,7 @@ const carbonSteel: PipeMaterial = {
   id: 'carbon_steel_new',
   name: 'Carbon steel (new)',
   roughness_mm: 0.046,
-  reference: { source: 'Crane TP-410' },
+  reference: { source: 'Moody, 1944' },
 };
 
 describe('calcMultiSegment', () => {
@@ -53,12 +53,12 @@ describe('calcMultiSegment', () => {
 
     const multiResult = calcMultiSegment(
       { temperature_c: 20, flowRate_m3h: 10, segments: [seg] },
-      waterData, craneData, ftData
+      waterData, darby3kData, entranceExitData
     );
 
     const singleResult = calcSingleSegment(
       { temperature_c: 20, pipe: pipe2inch, material: carbonSteel, flowRate_m3h: 10, length_m: 50, elevation_m: 5, fittings: [{ fittingId: 'elbow_90_lr_welded', quantity: 4 }] },
-      waterData, craneData, ftData
+      waterData, darby3kData, entranceExitData
     );
 
     expect(multiResult.dp_total).toBeCloseTo(singleResult.dp_total, 4);
@@ -89,15 +89,13 @@ describe('calcMultiSegment', () => {
       segments: [seg1, seg2],
     };
 
-    const result = calcMultiSegment(input, waterData, craneData, ftData);
+    const result = calcMultiSegment(input, waterData, darby3kData, entranceExitData);
 
     expect(result.segmentResults).toHaveLength(2);
 
-    // Total = sum of individual components
     const sumDp = result.segmentResults[0].dp_total + result.segmentResults[1].dp_total;
     expect(result.dp_total).toBeCloseTo(sumDp, 4);
 
-    // Different pipe sizes → different velocities
     expect(result.segmentResults[0].velocity_m_s).toBeGreaterThan(
       result.segmentResults[1].velocity_m_s
     );
@@ -114,10 +112,9 @@ describe('calcMultiSegment', () => {
 
     const result80C = calcMultiSegment(
       { temperature_c: 80, flowRate_m3h: 10, segments: [seg] },
-      waterData, craneData, ftData
+      waterData, darby3kData, entranceExitData
     );
 
-    // At 80°C, viscosity is much lower → higher Reynolds number
     expect(result80C.segmentResults[0].reynolds).toBeGreaterThan(100000);
     expect(result80C.segmentResults[0].flowRegime).toBe('turbulent');
   });

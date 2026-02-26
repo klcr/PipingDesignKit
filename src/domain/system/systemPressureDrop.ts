@@ -10,21 +10,21 @@
 
 import { SystemInput, SystemResult, SegmentResult, Reference } from '../types';
 import { calcSegmentPressureDrop } from './pressureDrop';
-import { CraneData, FtData } from '../fittings/fittingLoss';
+import { Darby3KData, EntranceExitData } from '../fittings/fittingLoss';
 import { pressureToHead } from '../pipe/straightPipeLoss';
 
 /**
  * 系統全体の圧損を計算する
  *
  * @param input - 系統入力（セグメント配列）
- * @param craneData - Crane TP-410 継手データ
- * @param ftData - 完全乱流摩擦係数データ
+ * @param darby3kData - Darby 3-K 継手データ
+ * @param entranceExitData - 入口/出口K値データ
  * @returns SystemResult
  */
 export function calcSystemPressureDrop(
   input: SystemInput,
-  craneData: CraneData,
-  ftData: FtData
+  darby3kData: Darby3KData,
+  entranceExitData: EntranceExitData
 ): SystemResult {
   const { segments } = input;
 
@@ -59,7 +59,7 @@ export function calcSystemPressureDrop(
 
   // 各セグメントを個別に計算
   const segmentResults: SegmentResult[] = segments.map(seg =>
-    calcSegmentPressureDrop(seg, craneData, ftData)
+    calcSegmentPressureDrop(seg, darby3kData, entranceExitData)
   );
 
   // 圧力損失の集計（直列: 単純加算）

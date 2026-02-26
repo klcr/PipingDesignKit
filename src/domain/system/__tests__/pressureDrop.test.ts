@@ -1,12 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { calcSegmentPressureDrop } from '../pressureDrop';
 import { SegmentInput, PipeSpec, PipeMaterial, FluidProperties, GRAVITY } from '../../types';
-import { CraneData, FtData } from '../../fittings/fittingLoss';
-import craneJson from '../../../../data/fittings-db/crane-tp410.json';
-import ftJson from '../../../../data/fittings-db/ft-values.json';
+import { Darby3KData, EntranceExitData } from '../../fittings/fittingLoss';
+import darby3kJson from '../../../../data/fittings-db/darby-3k.json';
+import entranceExitJson from '../../../../data/fittings-db/entrance-exit-k.json';
 
-const craneData = craneJson as unknown as CraneData;
-const ftData = ftJson as unknown as FtData;
+const darby3kData = darby3kJson as unknown as Darby3KData;
+const entranceExitData = entranceExitJson as unknown as EntranceExitData;
 
 // 2" Sch40 ANSI pipe
 const pipe2inch: PipeSpec = {
@@ -23,7 +23,7 @@ const carbonSteel: PipeMaterial = {
   id: 'carbon_steel_new',
   name: 'Carbon steel (new)',
   roughness_mm: 0.046,
-  reference: { source: 'Crane TP-410' },
+  reference: { source: 'Moody, 1944' },
 };
 
 const water20C: FluidProperties = {
@@ -48,40 +48,22 @@ describe('calcSegmentPressureDrop', () => {
       ],
     };
 
-    const result = calcSegmentPressureDrop(input, craneData, ftData);
+    const result = calcSegmentPressureDrop(input, darby3kData, entranceExitData);
 
-    // Step 3: velocity
-    // A = π/4 × (0.0525)² = 0.002165 m²
-    // v = (10/3600) / 0.002165 = 1.283 m/s
     expect(result.velocity_m_s).toBeCloseTo(1.283, 2);
-
-    // Step 4: Reynolds
-    // Re = 998.2 × 1.283 × 0.0525 / 0.001002 ≈ 67,100
     expect(result.reynolds).toBeCloseTo(67100, -2);
     expect(result.flowRegime).toBe('turbulent');
-
-    // Step 5: friction factor ≈ 0.022 (Churchill at this Re and roughness)
     expect(result.frictionFactor).toBeGreaterThan(0.018);
     expect(result.frictionFactor).toBeLessThan(0.028);
-
-    // Step 6: straight pipe loss should be > 0
     expect(result.dp_friction).toBeGreaterThan(0);
-
-    // Step 7: fitting losses (4 × 90° LR elbows)
     expect(result.fittingDetails).toHaveLength(1);
     expect(result.dp_fittings).toBeGreaterThan(0);
-
-    // Step 8: elevation = ρgΔz = 998.2 × 9.80665 × 5 ≈ 48,942 Pa
     expect(result.dp_elevation).toBeCloseTo(998.2 * GRAVITY * 5, -1);
-
-    // Step 9: total should be sum of all components
     expect(result.dp_total).toBeCloseTo(
       result.dp_friction + result.dp_fittings + result.dp_elevation,
       0
     );
-
-    // Head losses should be consistent
-    expect(result.head_total_m).toBeGreaterThan(5); // at least the static head
+    expect(result.head_total_m).toBeGreaterThan(5);
     expect(result.references.length).toBeGreaterThan(0);
   });
 
@@ -99,12 +81,11 @@ describe('calcSegmentPressureDrop', () => {
       ],
     };
 
-    const result = calcSegmentPressureDrop(input, craneData, ftData);
+    const result = calcSegmentPressureDrop(input, darby3kData, entranceExitData);
 
     expect(result.dp_friction).toBe(0);
     expect(result.dp_elevation).toBe(0);
     // Entrance K=0.5 + Exit K=1.0 = 1.5
-    // ΔP = 1.5 × 998.2 × 1.283² / 2 ≈ 1233 Pa
     expect(result.dp_fittings).toBeGreaterThan(1000);
     expect(result.dp_fittings).toBeLessThan(1500);
   });
@@ -125,9 +106,8 @@ describe('calcSegmentPressureDrop - unit conversion consistency', () => {
       ],
     };
 
-    const result = calcSegmentPressureDrop(input, craneData, ftData);
+    const result = calcSegmentPressureDrop(input, darby3kData, entranceExitData);
 
-    // Head and pressure should be consistent: h = ΔP / (ρg)
     const expectedHeadFriction = result.dp_friction / (water20C.density * GRAVITY);
     expect(result.head_friction_m).toBeCloseTo(expectedHeadFriction, 4);
 

@@ -13,9 +13,9 @@ describe('Melinder EG-Water density', () => {
     expect(rho).toBeCloseTo(997, 0);
   });
 
-  it('returns ~1038 kg/m³ at 30 wt%, 20°C (matches ASHRAE eg30 data)', () => {
+  it('returns ~1038 kg/m³ at 30 wt%, 20°C', () => {
     const rho = melinderDensity(0.30, 20, eg.x_ref, eg.t_ref_k, eg.n_terms, eg.density_coefficients);
-    // Melinder model: ~1038 kg/m³ (ASHRAE: ~1037.2)
+    // Melinder model: ~1038 kg/m³
     expect(rho).toBeCloseTo(1038, 0);
   });
 
@@ -42,7 +42,7 @@ describe('Melinder EG-Water viscosity', () => {
 
   it('returns ~2.17e-3 Pa·s at 30 wt%, 20°C', () => {
     const mu = melinderViscosity(0.30, 20, eg.x_ref, eg.t_ref_k, eg.n_terms, eg.viscosity_coefficients);
-    // Melinder model: ~2.17e-3 Pa·s (ASHRAE: ~1.87e-3; Melinder valid near x_ref)
+    // Melinder model: ~2.17e-3 Pa·s (valid near x_ref)
     expect(mu).toBeCloseTo(2.17e-3, 4);
   });
 

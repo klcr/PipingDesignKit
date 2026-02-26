@@ -1,5 +1,6 @@
 {
   "referenceId": "iapws-if97",
+  "dataLicense": "public-domain",
   "fluid": "water",
   "description": "Saturated liquid water properties by temperature",
   "saturation_table": [

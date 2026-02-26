@@ -1,5 +1,6 @@
 {
   "referenceId": "danahy-2018-khattab-2012",
+  "dataLicense": "CC-BY-4.0",
   "reference": {
     "source": "Density: Danahy et al., Fermentation 4(3):72, 2018 (CC BY); Viscosity: Khattab et al., Korean J. Chem. Eng. 29(6):812, 2012; CRC Handbook",
     "equation": "Density: Redlich-Kister excess volume; Viscosity: bilinear table interpolation"

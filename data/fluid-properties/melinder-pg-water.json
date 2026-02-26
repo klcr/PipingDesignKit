@@ -1,5 +1,6 @@
 {
   "referenceId": "melinder-2010-pg",
+  "dataLicense": "BSD-3-Clause",
   "reference": {
     "source": "Melinder (2010), LBNL Buildings Library v9.1.0 (BSD-3)",
     "equation": "Property(T, X) = Σ aₖ · (100·(X − X_ref))^i · (T − T_ref)^j"

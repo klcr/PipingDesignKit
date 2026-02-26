@@ -7,7 +7,7 @@ import { SystemResult, SegmentResult } from '@domain/types';
 import { getFluidProperties } from '@domain/fluid/fluidProperties';
 import { getSolutionProperties } from '@domain/fluid/aqueousSolution';
 import {
-  waterData, craneData, ftData, getAvailableFittings, getAvailableFluids,
+  waterData, darby3kData, entranceExitData, getAvailableFittings, getAvailableFluids,
   getFluidData, getFluidTempRange, getFluidEntry, getSolutionInput,
   FluidId, SolutionId,
 } from '@infrastructure/dataLoader';
@@ -191,7 +191,7 @@ export const MultiSegmentCalculator = forwardRef<MultiSegmentCalculatorHandle, M
 
       const res = calcMultiSegment(
         { temperature_c: temperature, flowRate_m3h: flowRate, segments: segmentDefs, fluid },
-        waterData, craneData, ftData
+        waterData, darby3kData, entranceExitData
       );
       setResult(res);
     } catch (e) {

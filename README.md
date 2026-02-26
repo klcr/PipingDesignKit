@@ -43,3 +43,5 @@ data/
 ## ライセンス
 
 MIT
+
+`data/` 配下のデータソースのライセンス・出典については [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) を参照してください。

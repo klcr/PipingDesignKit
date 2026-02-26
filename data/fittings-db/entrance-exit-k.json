@@ -1,0 +1,18 @@
+{
+  "referenceId": "idelchik-2007",
+  "dataLicense": "factual-data",
+  "description": "Pipe entrance and exit loss coefficients (fixed K values). These are classical fluid mechanics results derived from Borda-Carnot and Bernoulli analysis.",
+  "description_ja": "管入口・出口の損失係数（固定K値）。ボルダ・カルノーおよびベルヌーイ解析に基づく古典的流体力学の結果。",
+  "entrances": [
+    { "id": "entrance_sharp",           "description": "Sharp-edged entrance",           "description_ja": "鋭角入口",                   "k": 0.5  },
+    { "id": "entrance_inward",          "description": "Inward projecting (Borda)",      "description_ja": "内方突出入口（ボルダ）",       "k": 0.78 },
+    { "id": "entrance_rounded_r02",     "description": "Rounded entrance r/d=0.02",      "description_ja": "丸み入口 r/d=0.02",           "k": 0.28 },
+    { "id": "entrance_rounded_r04",     "description": "Rounded entrance r/d=0.04",      "description_ja": "丸み入口 r/d=0.04",           "k": 0.24 },
+    { "id": "entrance_rounded_r06",     "description": "Rounded entrance r/d=0.06",      "description_ja": "丸み入口 r/d=0.06",           "k": 0.15 },
+    { "id": "entrance_rounded_r10",     "description": "Rounded entrance r/d=0.10",      "description_ja": "丸み入口 r/d=0.10",           "k": 0.09 },
+    { "id": "entrance_rounded_r15",     "description": "Rounded entrance r/d>=0.15",     "description_ja": "丸み入口 r/d≥0.15",           "k": 0.04 }
+  ],
+  "exits": [
+    { "id": "exit_all",                 "description": "Pipe exit (all geometries)",      "description_ja": "管出口（全形状）",             "k": 1.0  }
+  ]
+}

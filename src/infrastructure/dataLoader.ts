@@ -7,7 +7,7 @@
 
 import { WaterData } from '@domain/fluid/waterProperties';
 import { FluidTableData } from '@domain/fluid/fluidProperties';
-import { CraneData, FtData } from '@domain/fittings/fittingLoss';
+import { Darby3KData, EntranceExitData } from '@domain/fittings/fittingLoss';
 import type {
   ConcentrationUnit,
   SolutionMethod,
@@ -21,8 +21,8 @@ import type { SolutionInput } from '@domain/fluid/aqueousSolution';
 
 import waterJson from '@data/fluid-properties/water.json';
 import seawaterJson from '@data/fluid-properties/seawater.json';
-import craneJson from '@data/fittings-db/crane-tp410.json';
-import ftJson from '@data/fittings-db/ft-values.json';
+import darby3kJson from '@data/fittings-db/darby-3k.json';
+import entranceExitJson from '@data/fittings-db/entrance-exit-k.json';
 import roughnessJson from '@data/pipe-specs/surface-roughness.json';
 import ansiJson from '@data/pipe-specs/ansi-b36.10m.json';
 import jisJson from '@data/pipe-specs/jis-g3452-sgp.json';
@@ -111,8 +111,8 @@ export interface PumpCurveData {
 // ── 型キャスト済みデータエクスポート ──
 
 export const waterData = waterJson as unknown as WaterData;
-export const craneData = craneJson as unknown as CraneData;
-export const ftData = ftJson as unknown as FtData;
+export const darby3kData = darby3kJson as unknown as Darby3KData;
+export const entranceExitData = entranceExitJson as unknown as EntranceExitData;
 export const roughnessData = roughnessJson as unknown as RoughnessData;
 export const ansiData = ansiJson as unknown as AnsiData;
 export const jisData = jisJson as unknown as JisData;
@@ -497,8 +497,8 @@ export function getSolutionInput(fluidId: SolutionId): SolutionInput {
  */
 export function getAvailableFittings(): { id: string; description: string; description_ja?: string }[] {
   const items: { id: string; description: string; description_ja?: string }[] = [];
-  for (const f of craneData.fittings) items.push({ id: f.id, description: f.description, description_ja: f.description_ja });
-  for (const e of craneData.entrances) items.push({ id: e.id, description: e.description, description_ja: e.description_ja });
-  for (const x of craneData.exits) items.push({ id: x.id, description: x.description, description_ja: x.description_ja });
+  for (const f of darby3kData.fittings) items.push({ id: f.id, description: f.description, description_ja: f.description_ja });
+  for (const e of entranceExitData.entrances) items.push({ id: e.id, description: e.description, description_ja: e.description_ja });
+  for (const x of entranceExitData.exits) items.push({ id: x.id, description: x.description, description_ja: x.description_ja });
   return items;
 }

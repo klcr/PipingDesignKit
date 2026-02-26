@@ -1,5 +1,7 @@
 {
-  "referenceId": "crane-tp410-2009",
+  "referenceId": "moody-1944",
+  "dataLicense": "factual-data",
+  "note": "Surface roughness values are widely published empirical data originating from Moody (1944) / Colebrook & White (1937)",
   "materials": [
     { "id": "carbon_steel_new",       "name": "Carbon steel (new, clean)",   "name_ja": "炭素鋼（新品）",         "roughness_mm": 0.046,  "roughness_in": 0.0018 },
     { "id": "carbon_steel_corroded",  "name": "Carbon steel (corroded)",     "name_ja": "炭素鋼（軽度腐食）",     "roughness_mm": 0.15,   "roughness_in": 0.006  },

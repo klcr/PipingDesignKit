@@ -3,6 +3,8 @@
   "grade": "SGP",
   "description": "Carbon Steel Pipes for Ordinary Piping",
   "referenceId": "jis-g3452-2019",
+  "dataLicense": "factual-data",
+  "note": "Pipe dimensions are factual data widely published in manufacturer catalogs and engineering references",
   "sizes": [
     { "dn": 6,   "nps": "1/8",   "od_mm": 10.5,  "wall_mm": 2.0, "id_mm": 6.5   },
     { "dn": 8,   "nps": "1/4",   "od_mm": 13.8,  "wall_mm": 2.3, "id_mm": 9.2   },

@@ -9,7 +9,7 @@ import { getSolutionProperties } from '@domain/fluid/aqueousSolution';
 import { RouteNode, RouteConversionConfig, ElbowConnectionType, RouteAnalysis } from '@domain/route/types';
 import { analyzeRoute } from '@domain/route/routeToSegments';
 import {
-  waterData, craneData, ftData, getAvailableFittings, getAvailableFluids,
+  waterData, darby3kData, entranceExitData, getAvailableFittings, getAvailableFluids,
   getFluidData, getFluidTempRange, getFluidEntry, getSolutionInput,
   FluidId, SolutionId,
 } from '@infrastructure/dataLoader';
@@ -278,7 +278,7 @@ export const RouteEditor = forwardRef<RouteEditorHandle, RouteEditorProps>(
           conversionConfig,
           fluid,
         },
-        waterData, craneData, ftData
+        waterData, darby3kData, entranceExitData
       );
       setResult(res);
     } catch (e) {

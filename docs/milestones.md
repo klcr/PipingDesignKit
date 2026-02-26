@@ -10,13 +10,13 @@
 
 | モジュール | 状態 | 内容 | PR |
 |-----------|------|------|----|
-| `domain/fluid` | ✅ 完了 | 水物性補間 (IAPWS-IF97, 0–200 °C) + 汎用流体物性取得 (海水/EG30%/EG50%) | #2, MS7 |
+| `domain/fluid` | ✅ 完了 | 水物性補間 (IAPWS-IF97, 0–200 °C) + 汎用流体物性取得 (海水/EG/PG/混合流体) + Melinder相関・Laliberté電解質モデル | #2, MS7 |
 | `domain/pipe` | ✅ 完了 | 管形状計算、摩擦係数 3 手法 (Churchill / Swamee-Jain / f_T)、直管圧損 (Darcy-Weisbach) | #2 |
-| `domain/fittings` | ✅ 完了 | K 値 4 手法 (Crane L/D, Darby 3-K, Cv 変換, 固定 K)、継手損失集計 | #2 |
+| `domain/fittings` | ✅ 完了 | K 値 3 手法 (Darby 3-K, Cv 変換, 固定 K)、継手損失集計 | #2 |
 | `domain/system` | ✅ 完了 | 10 ステップセグメント圧損パイプライン、マルチセグメント直列計算、単位変換、揚程計算、**ポンプ選定 (TDH/抵抗曲線/運転点/NPSHa)** | #2, #5, MS7 |
 | `domain/route` | ✅ 完了 | ルート幾何 (3D 距離・方向・高低差)、エルボ検出 (0/45/90/180°)、ルート → セグメント変換 | #6 |
 | `domain/types` | ✅ 完了 | FluidProperties, PipeSpec, SegmentInput/Result, SystemInput/Result, Route 型, Reference 追跡型 | #2, #5, #6 |
-| `data/` | ✅ 完了 | 流体物性 4 種 (水/海水/EG30%/EG50%)、ANSI B36.10M (14 NPS)、JIS G3452、表面粗度 (16 材質)、Crane TP-410 継手 (24 種 + 入口/出口 8 種)、Darby 3-K、f_T 値 (24 サイズ)、**サンプルポンプカーブ**、出典 | #2, MS7 |
+| `data/` | ✅ 完了 | 流体物性 8 種 (水/海水/EG/PG/エタノール/メタノール/スクロース/ブライン)、ANSI B36.10M (14 NPS)、JIS G3452、表面粗度 (16 材質)、Darby 3-K 継手 (13 種)、入口/出口 K 値 (8 種)、**サンプルポンプカーブ**、出典 | #2, MS7 |
 | `application/` | ✅ 完了 | calcSingleSegment, calcMultiSegment, calcRoute ユースケース + 汎用流体物性対応 | #4, #5, #6, MS7 |
 | `infrastructure/` | ✅ 完了 | dataLoader (JSON 一元管理 + **流体レジストリ** + **ポンプデータ**)、pipeSpecResolver (ANSI/JIS)、materialResolver | #4, MS7 |
 | `ui/features` | ✅ 完了 | PipeLossCalculator, MultiSegmentCalculator, RouteEditor — **流体セレクタ付き 4 タブ構成** + **PumpChart (SVG H-Q 曲線)** | #4, #5, #6, #7, MS7 |
@@ -228,7 +228,7 @@
 
 **実績サマリ:**
 - `fluidProperties.ts` で汎用流体物性取得関数を実装（水以外の流体にも対応する汎用テーブル補間）
-- 3 種の流体データ JSON を追加（海水 3.5%、エチレングリコール 30%、エチレングリコール 50%）
+- 複数の流体データ JSON を追加（海水 3.5%、エチレングリコール水溶液 (Melinder)、プロピレングリコール水溶液 (Melinder) 等）
 - `dataLoader.ts` に流体レジストリを追加（`getAvailableFluids`, `getFluidData`, `getFluidTempRange`）
 - 3 タブ (単/マルチ/ルート) + ポンプタブすべてに流体セレクタ・ドロップダウンを追加
 - `application/` 層の全計算ユースケースが汎用流体物性を受け付けるよう拡張
@@ -241,8 +241,8 @@
 |---------|------|
 | `src/domain/fluid/fluidProperties.ts` | 汎用流体テーブル補間（FluidTableData → FluidProperties） |
 | `data/fluid-properties/seawater.json` | 海水 (3.5%, 0–80 °C, 12 温度点, 出典: Sharqawy 2010) |
-| `data/fluid-properties/ethylene-glycol-30.json` | EG 30% (-10–100 °C, 10 温度点, 出典: ASHRAE 2021) |
-| `data/fluid-properties/ethylene-glycol-50.json` | EG 50% (-30–100 °C, 12 温度点, 出典: ASHRAE 2021) |
+| `data/fluid-properties/melinder-eg-water.json` | エチレングリコール水溶液 (Melinder 相関、出典: LBNL BSD-3) |
+| `data/fluid-properties/melinder-pg-water.json` | プロピレングリコール水溶液 (Melinder 相関、出典: LBNL BSD-3) |
 | `src/infrastructure/dataLoader.ts` 拡張 | 流体レジストリ (FluidId 型, getAvailableFluids, getFluidData, getFluidTempRange) |
 | `src/application/types.ts` 拡張 | CalcSingleSegmentInput / CalcMultiSegmentInput / CalcRouteInput に `fluid?` フィールド追加 |
 | UI 全タブ拡張 | 流体セレクタ・ドロップダウン (4 流体 + 温度範囲表示) |
@@ -270,7 +270,7 @@ MS1 (基盤強化)            ✅ PR #4
 - **MS4.5**: Critical 3 件 + High 4 件を対応済み。残り: H-1 (Zod), H-6 (ESLint), M-1〜M-6 (UX)
 - **MS5**: deploy.yml (PR #8) + fileIO (PR #11) は完了。コア機能（計算書出力・localStorage 永続化）は未着手
 - **MS6**: ✅ 完了 — ポンプ選定補助 (TDH/抵抗曲線/運転点/NPSHa + SVG チャート)
-- **MS7**: ✅ 完了 — 流体セレクタ拡張 (水/海水/EG30%/EG50%)
+- **MS7**: ✅ 完了 — 流体セレクタ拡張 (水/海水/EG/PG/混合流体)
 
 ---
 
@@ -281,7 +281,7 @@ MS1 (基盤強化)            ✅ PR #4
 | P0: 圧損計算エンジン | (初期実装) | ✅ 完了 |
 | P0: 配管ルート入力 | **MS3** | ✅ 完了 (PR #6) |
 | P0: 3 ビュー表示 | **MS4** | ✅ 完了 (PR #7) |
-| P1: 流体セレクタ | **MS7** | ✅ 完了 (水/海水/EG30%/EG50%) |
+| P1: 流体セレクタ | **MS7** | ✅ 完了 (水/海水/EG/PG/混合流体) |
 | P1: 配管スペック選択 | (初期実装 + MS1 UI 改善) | ✅ 完了 |
 | P2: 計算書出力 | **MS5** | ⬜ 未着手 |
 | P2: ポンプ選定補助 | **MS6** | ✅ 完了 |

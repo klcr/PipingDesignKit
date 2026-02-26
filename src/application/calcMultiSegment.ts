@@ -10,7 +10,7 @@
 import { SystemInput, SystemResult } from '@domain/types';
 import { getWaterProperties, WaterData } from '@domain/fluid/waterProperties';
 import { calcSystemPressureDrop } from '@domain/system/systemPressureDrop';
-import { CraneData, FtData } from '@domain/fittings/fittingLoss';
+import { Darby3KData, EntranceExitData } from '@domain/fittings/fittingLoss';
 import { flowRateToM3s } from '@domain/system/unitConversion';
 import { CalcMultiSegmentInput } from './types';
 
@@ -19,15 +19,15 @@ import { CalcMultiSegmentInput } from './types';
  *
  * @param input - ユーザー入力（temperature_c, flowRate_m3h は系統レベル）
  * @param waterData - 水物性データ
- * @param craneData - Crane TP-410 継手データ
- * @param ftData - 完全乱流摩擦係数データ
+ * @param darby3kData - Darby 3-K 継手データ
+ * @param entranceExitData - 入口/出口K値データ
  * @returns SystemResult
  */
 export function calcMultiSegment(
   input: CalcMultiSegmentInput,
   waterData: WaterData,
-  craneData: CraneData,
-  ftData: FtData
+  darby3kData: Darby3KData,
+  entranceExitData: EntranceExitData
 ): SystemResult {
   // 1. 流体物性を取得（input.fluid 指定時はそれを使用、なければ水物性テーブルから補間）
   const fluid = input.fluid ?? getWaterProperties(input.temperature_c, waterData);
@@ -49,5 +49,5 @@ export function calcMultiSegment(
   };
 
   // 4. ドメイン計算を実行
-  return calcSystemPressureDrop(systemInput, craneData, ftData);
+  return calcSystemPressureDrop(systemInput, darby3kData, entranceExitData);
 }

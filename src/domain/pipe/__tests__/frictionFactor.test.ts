@@ -25,10 +25,10 @@ describe('churchillFrictionFactor', () => {
     expect(result.f).toBeCloseTo(0.022, 2);
   });
 
-  it('should approach f_T for very high Re (fully turbulent)', () => {
+  it('should approach fully turbulent f_T for very high Re', () => {
     const result = churchillFrictionFactor(1e7, 0.046, 52.5);
     const ft = calcFtFullyTurbulent(0.046, 52.5);
-    // Should be within 5% of f_T
+    // Should converge to Colebrook fully-turbulent limit
     expect(result.f).toBeCloseTo(ft.f, 3);
   });
 
@@ -55,19 +55,19 @@ describe('swameeJainFrictionFactor', () => {
 });
 
 describe('calcFtFullyTurbulent', () => {
-  it('should match Crane table for 2" pipe (f_T=0.019)', () => {
-    // 2" Sch40: ID=52.50mm, ε=0.046mm
+  it('should compute f_T ≈ 0.019 for 2" pipe via Colebrook equation', () => {
+    // 2" Sch40: ID=52.50mm, ε=0.046mm → fully turbulent f_T
     const result = calcFtFullyTurbulent(0.046, 52.50);
     expect(result.f).toBeCloseTo(0.019, 2);
   });
 
-  it('should match Crane table for 4" pipe (f_T=0.017)', () => {
+  it('should compute f_T ≈ 0.017 for 4" pipe via Colebrook equation', () => {
     // 4" Sch40: ID=102.26mm, ε=0.046mm
     const result = calcFtFullyTurbulent(0.046, 102.26);
     expect(result.f).toBeCloseTo(0.017, 2);
   });
 
-  it('should match Crane table for 8" pipe (f_T=0.014)', () => {
+  it('should compute f_T ≈ 0.014 for 8" pipe via Colebrook equation', () => {
     // 8" Sch40: ID=202.72mm, ε=0.046mm
     const result = calcFtFullyTurbulent(0.046, 202.72);
     expect(result.f).toBeCloseTo(0.014, 2);

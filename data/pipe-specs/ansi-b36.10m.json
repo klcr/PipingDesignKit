@@ -2,6 +2,8 @@
   "standard": "ASME B36.10M",
   "description": "Welded and Seamless Wrought Steel Pipe",
   "referenceId": "asme-b36.10m",
+  "dataLicense": "factual-data",
+  "note": "Pipe dimensions are factual data widely published in manufacturer catalogs and engineering references",
   "sizes": [
     {
       "nps": "1/2", "dn": 15, "od_mm": 21.3,

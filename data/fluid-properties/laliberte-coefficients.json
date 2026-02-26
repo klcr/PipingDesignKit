@@ -1,5 +1,6 @@
 {
   "referenceId": "laliberte-2009",
+  "dataLicense": "MIT",
   "reference": {
     "source": "Laliberté & Cooper (2004) J.Chem.Eng.Data 49:1141; Laliberté (2007) J.Chem.Eng.Data 52:321; Laliberté (2009) J.Chem.Eng.Data 54:1725",
     "equation": "Laliberté universal electrolyte model — density and viscosity"
