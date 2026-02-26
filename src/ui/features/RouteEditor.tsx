@@ -13,6 +13,7 @@ import { getAvailableMaterials, resolveMaterial } from '@infrastructure/material
 import { calcRoute } from '@application/calcRoute';
 import { RouteViews } from '../views/RouteViews';
 import { RouteProjectData } from '@infrastructure/persistence/projectFile';
+import type { PumpSelectionInput } from './PumpChart';
 import { useUndoableNodes } from '../hooks/useUndoableNodes';
 
 // ── Node form state ──
@@ -52,10 +53,11 @@ export interface RouteEditorHandle {
 
 export interface RouteEditorProps {
   initialData?: RouteProjectData;
+  onSendToPump?: (input: PumpSelectionInput) => void;
 }
 
 export const RouteEditor = forwardRef<RouteEditorHandle, RouteEditorProps>(
-  function RouteEditor({ initialData }, ref) {
+  function RouteEditor({ initialData, onSendToPump }, ref) {
   const { t, locale } = useTranslation();
 
   // System-level inputs
@@ -442,6 +444,27 @@ export const RouteEditor = forwardRef<RouteEditorHandle, RouteEditorProps>(
       {/* Results */}
       {error && <div style={{ color: 'red', marginTop: '12px', padding: '8px' }}>{error}</div>}
       {result && <SystemResultsView result={result} t={t} fittingDescMap={fittingDescMap} />}
+
+      {result && onSendToPump && (
+        <button
+          onClick={() => {
+            onSendToPump({
+              designFlow_m3h: flowRate,
+              staticHead_m: result.head_elevation_total_m,
+              frictionHead_m: result.head_friction_total_m + result.head_fittings_total_m,
+              fluidId,
+              temperature_c: temperature,
+            });
+          }}
+          style={{
+            marginTop: '12px', padding: '8px 20px', fontSize: '0.9em',
+            background: '#fff', color: '#0066cc', border: '2px solid #0066cc',
+            borderRadius: '6px', cursor: 'pointer', width: '100%',
+          }}
+        >
+          {t('action.send_to_pump')}
+        </button>
+      )}
     </div>
   );
 });

@@ -1,10 +1,10 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { I18nProvider, useTranslation } from './ui/i18n/context';
 import { LanguageSwitcher } from './ui/components/LanguageSwitcher';
 import { PipeLossCalculator, PipeLossCalculatorHandle } from './ui/features/PipeLossCalculator';
 import { MultiSegmentCalculator, MultiSegmentCalculatorHandle } from './ui/features/MultiSegmentCalculator';
 import { RouteEditor, RouteEditorHandle } from './ui/features/RouteEditor';
-import { PumpChart } from './ui/features/PumpChart';
+import { PumpChart, PumpSelectionInput } from './ui/features/PumpChart';
 import {
   ProjectFile,
   SingleSegmentProjectData,
@@ -38,6 +38,14 @@ function AppContent() {
   const [importError, setImportError] = useState<string | null>(null);
   // Project name
   const [projectName, setProjectName] = useState('');
+
+  // Pump selection input from pressure loss calculation
+  const [pumpInput, setPumpInput] = useState<PumpSelectionInput | null>(null);
+
+  const handleSendToPump = useCallback((input: PumpSelectionInput) => {
+    setPumpInput(input);
+    setActiveTab('pump');
+  }, []);
 
   const handleExport = () => {
     setImportError(null);
@@ -127,10 +135,10 @@ function AppContent() {
         <TabButton label={t('tab.pump')} active={activeTab === 'pump'} onClick={() => setActiveTab('pump')} />
       </div>
 
-      {activeTab === 'single' && <PipeLossCalculator key={`single-${mountKey}`} ref={singleRef} initialData={singleInitial} />}
-      {activeTab === 'multi' && <MultiSegmentCalculator key={`multi-${mountKey}`} ref={multiRef} initialData={multiInitial} />}
-      {activeTab === 'route' && <RouteEditor key={`route-${mountKey}`} ref={routeRef} initialData={routeInitial} />}
-      {activeTab === 'pump' && <PumpChart />}
+      {activeTab === 'single' && <PipeLossCalculator key={`single-${mountKey}`} ref={singleRef} initialData={singleInitial} onSendToPump={handleSendToPump} />}
+      {activeTab === 'multi' && <MultiSegmentCalculator key={`multi-${mountKey}`} ref={multiRef} initialData={multiInitial} onSendToPump={handleSendToPump} />}
+      {activeTab === 'route' && <RouteEditor key={`route-${mountKey}`} ref={routeRef} initialData={routeInitial} onSendToPump={handleSendToPump} />}
+      {activeTab === 'pump' && <PumpChart initialInput={pumpInput} onInputConsumed={() => setPumpInput(null)} />}
     </div>
   );
 }

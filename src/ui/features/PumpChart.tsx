@@ -1,13 +1,38 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useTranslation } from '../i18n/context';
 import { localizedName } from '../i18n/localizedName';
 import { Section, Field, ResultRow, inputStyle } from '../components/FormLayout';
 import { formatNum } from '../components/formatters';
 import { getFluidProperties } from '@domain/fluid/fluidProperties';
 import { calcResistanceCurve, findOperatingPoint, calcNPSHa, ResistanceCurvePoint, OperatingPoint } from '@domain/system/pumpSelection';
-import { PumpCurveData, samplePumpData, getAvailableFluids, getFluidData, getFluidTempRange, FluidId } from '@infrastructure/dataLoader';
+import { calcPumpSuggestion, PumpSuggestion } from '@domain/system/pumpRequirements';
+import { PumpCurveData, samplePumpData, getAvailableFluids, getFluidData, getFluidTempRange, FluidId, pumpTypeClassifications } from '@infrastructure/dataLoader';
 
-export function PumpChart() {
+// ── 圧損計算からの受け渡しデータ型 ──
+
+export interface PumpSelectionInput {
+  designFlow_m3h: number;
+  staticHead_m: number;
+  frictionHead_m: number;
+  fluidId: FluidId;
+  temperature_c: number;
+}
+
+// ── 回転数プリセット ──
+
+const SPEED_PRESETS = [
+  { value: 2900, label: '2900 rpm (50Hz 2P)' },
+  { value: 1450, label: '1450 rpm (50Hz 4P)' },
+  { value: 3500, label: '3500 rpm (60Hz 2P)' },
+  { value: 1750, label: '1750 rpm (60Hz 4P)' },
+] as const;
+
+interface PumpChartProps {
+  initialInput?: PumpSelectionInput | null;
+  onInputConsumed?: () => void;
+}
+
+export function PumpChart({ initialInput, onInputConsumed }: PumpChartProps) {
   const { t, locale } = useTranslation();
 
   // Fluid
@@ -25,6 +50,29 @@ export function PumpChart() {
   const [suctionStaticHead, setSuctionStaticHead] = useState(3);
   const [suctionFrictionLoss, setSuctionFrictionLoss] = useState(1);
   const [atmPressure, setAtmPressure] = useState(101.325);
+
+  // Speed selector
+  const [speedMode, setSpeedMode] = useState<'preset' | 'custom'>('preset');
+  const [presetSpeed, setPresetSpeed] = useState(2900);
+  const [customSpeed, setCustomSpeed] = useState(2900);
+  const assumedSpeed = speedMode === 'preset' ? presetSpeed : customSpeed;
+
+  // Data received banner
+  const [showDataBanner, setShowDataBanner] = useState(false);
+
+  // Apply external input from pressure loss calculation
+  useEffect(() => {
+    if (!initialInput) return;
+
+    setFluidId(initialInput.fluidId);
+    setTemperature(initialInput.temperature_c);
+    setDesignFlow(initialInput.designFlow_m3h);
+    setStaticHead(initialInput.staticHead_m);
+    setFrictionHead(initialInput.frictionHead_m);
+    setShowDataBanner(true);
+
+    onInputConsumed?.();
+  }, [initialInput, onInputConsumed]);
 
   const pumpData: PumpCurveData = samplePumpData;
 
@@ -59,6 +107,26 @@ export function PumpChart() {
     });
   }, [fluidProps, atmPressure, suctionStaticHead, suctionFrictionLoss]);
 
+  // Pump suggestion
+  const totalHead = staticHead + frictionHead;
+  const pumpSuggestion = useMemo((): PumpSuggestion | null => {
+    if (designFlow <= 0 || totalHead <= 0 || assumedSpeed <= 0) return null;
+    try {
+      return calcPumpSuggestion(
+        {
+          designFlow_m3h: designFlow,
+          totalHead_m: totalHead,
+          speed_rpm: assumedSpeed,
+          npsha_m: npsha ?? undefined,
+          density_kg_m3: fluidProps?.density,
+        },
+        pumpTypeClassifications
+      );
+    } catch {
+      return null;
+    }
+  }, [designFlow, totalHead, assumedSpeed, npsha, fluidProps]);
+
   // Warnings
   const warnings: string[] = [];
   if (operatingPoint && operatingPoint.efficiency_pct < 50) {
@@ -70,6 +138,23 @@ export function PumpChart() {
 
   return (
     <div>
+      {/* Data received banner */}
+      {showDataBanner && (
+        <div style={{
+          padding: '8px 12px', background: '#e8f4fd', border: '1px solid #b3d9f2',
+          borderRadius: '6px', marginBottom: '12px', fontSize: '0.85em',
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        }}>
+          <span>{t('pump.data_received_from')}</span>
+          <button
+            onClick={() => setShowDataBanner(false)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1em', color: '#666' }}
+          >
+            {'\u00D7'}
+          </button>
+        </div>
+      )}
+
       {/* Pump info */}
       <Section title={t('pump.title')}>
         <ResultRow label={t('pump.model')} value={pumpData.model} />
@@ -156,6 +241,85 @@ export function PumpChart() {
                     {w}
                   </div>
                 ))}
+              </div>
+            )}
+          </Section>
+
+          {/* Pump Suggestion */}
+          <Section title={t('pump.suggestion_title')}>
+            <Field label={t('pump.assumed_speed')}>
+              <select
+                value={speedMode === 'preset' ? String(presetSpeed) : 'custom'}
+                onChange={e => {
+                  if (e.target.value === 'custom') {
+                    setSpeedMode('custom');
+                  } else {
+                    setSpeedMode('preset');
+                    setPresetSpeed(Number(e.target.value));
+                  }
+                }}
+                style={inputStyle}
+              >
+                {SPEED_PRESETS.map(p => (
+                  <option key={p.value} value={String(p.value)}>{p.label}</option>
+                ))}
+                <option value="custom">{t('pump.custom_speed')}</option>
+              </select>
+              {speedMode === 'custom' && (
+                <input
+                  type="number"
+                  value={customSpeed}
+                  onChange={e => setCustomSpeed(Number(e.target.value))}
+                  min={100}
+                  step={50}
+                  style={{ ...inputStyle, width: '80px', marginLeft: '6px' }}
+                />
+              )}
+              {speedMode === 'custom' && <span style={{ marginLeft: '4px' }}>{t('unit.rpm')}</span>}
+            </Field>
+
+            {pumpSuggestion ? (
+              <>
+                <h4 style={{ margin: '12px 0 6px', fontSize: '0.9em', color: '#333' }}>{t('pump.design_point')}</h4>
+                <ResultRow label={t('pump.required_flow')} value={`${formatNum(designFlow, 1)} ${t('unit.m3h')}`} />
+                <ResultRow label={t('pump.required_head')} value={`${formatNum(totalHead, 1)} ${t('unit.m')}`} />
+
+                <h4 style={{ margin: '12px 0 6px', fontSize: '0.9em', color: '#333' }}>{t('pump.specific_speed')}</h4>
+                <ResultRow label="Ns" value={formatNum(pumpSuggestion.specificSpeed.ns, 0)} />
+                <ResultRow
+                  label={t('pump.recommended_type')}
+                  value={t(`pump.type.${pumpSuggestion.specificSpeed.pumpType}`)}
+                />
+
+                <h4 style={{ margin: '12px 0 6px', fontSize: '0.9em', color: '#333' }}>{t('pump.bep_range')}</h4>
+                <ResultRow
+                  label={t('pump.bep_range')}
+                  value={`${formatNum(pumpSuggestion.bep.bepFlowRange.min_m3h, 1)} ~ ${formatNum(pumpSuggestion.bep.bepFlowRange.max_m3h, 1)} ${t('unit.m3h')}`}
+                />
+                <ResultRow
+                  label={t('pump.recommended_operating_range')}
+                  value={`${formatNum(pumpSuggestion.bep.operatingRange.min_m3h, 1)} ~ ${formatNum(pumpSuggestion.bep.operatingRange.max_m3h, 1)} ${t('unit.m3h')}`}
+                />
+
+                {pumpSuggestion.maxNpshr_m !== null && (
+                  <ResultRow
+                    label={t('pump.max_npshr_allowed')}
+                    value={`< ${formatNum(pumpSuggestion.maxNpshr_m, 2)} ${t('unit.m')}`}
+                  />
+                )}
+
+                <ResultRow
+                  label={t('pump.estimated_power')}
+                  value={`~${formatNum(pumpSuggestion.estimatedPower_kW, 2)} ${t('pump.unit.kw')}`}
+                />
+
+                <div style={{ marginTop: '12px', fontSize: '0.8em', color: '#888' }}>
+                  {t('pump.suggestion_note')}
+                </div>
+              </>
+            ) : (
+              <div style={{ color: '#999', fontSize: '0.85em' }}>
+                {t('pump.design_point')}: {t('pump.input_flow')} &gt; 0, {t('pump.required_head')} &gt; 0
               </div>
             )}
           </Section>
@@ -257,7 +421,7 @@ function PumpPerformanceChart({ pumpCurve, resistanceCurve, operatingPoint, t }:
           textAnchor="middle" fontSize={11} fill="#555">{q}</text>
       ))}
       <text x={PAD.left + chartW / 2} y={H - 8}
-        textAnchor="middle" fontSize={12} fill="#333">Q (m\u00B3/h)</text>
+        textAnchor="middle" fontSize={12} fill="#333">Q (m{'\u00B3'}/h)</text>
 
       {/* Y axis labels (left - head) */}
       {yTicks.map(h => (

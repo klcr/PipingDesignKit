@@ -188,6 +188,30 @@ const en: Record<string, string> = {
   'pump.no_intersection': 'No operating point found (pump and resistance curves do not intersect)',
   'pump.warning_low_efficiency': 'Low efficiency operating point',
   'pump.warning_npsh': 'NPSHa < NPSHr: Cavitation risk',
+
+  // Pump - data passing
+  'action.send_to_pump': 'Send to Pump Selection',
+  'pump.data_received_from': 'Data loaded from calculation',
+
+  // Pump - recommendation
+  'pump.suggestion_title': 'Recommended Pump Characteristics',
+  'pump.assumed_speed': 'Assumed Speed',
+  'pump.custom_speed': 'Custom',
+  'pump.design_point': 'Design Point',
+  'pump.required_flow': 'Required Flow Rate',
+  'pump.required_head': 'Required Total Head',
+  'pump.specific_speed': 'Specific Speed (Ns)',
+  'pump.recommended_type': 'Recommended Pump Type',
+  'pump.bep_range': 'BEP Flow Range',
+  'pump.max_npshr_allowed': 'Max Allowable NPSHr',
+  'pump.estimated_power': 'Estimated Power',
+  'pump.recommended_operating_range': 'Recommended Operating Range',
+  'pump.suggestion_note': '* Refer to manufacturer catalogs for actual pump selection',
+  'pump.type.radial': 'Centrifugal (Radial) Pump',
+  'pump.type.francis': 'Francis Type Pump',
+  'pump.type.mixed_flow': 'Mixed Flow Pump',
+  'pump.type.axial': 'Axial Flow Pump',
+  'pump.unit.kw': 'kW',
 };
 
 export default en;

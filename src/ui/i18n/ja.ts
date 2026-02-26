@@ -188,6 +188,30 @@ const ja: Record<string, string> = {
   'pump.no_intersection': '運転点なし (ポンプ曲線と抵抗曲線の交点が見つかりません)',
   'pump.warning_low_efficiency': '効率が低い運転点です',
   'pump.warning_npsh': 'NPSHa < NPSHr: キャビテーションのリスクがあります',
+
+  // Pump - data passing
+  'action.send_to_pump': 'ポンプ選定に送る',
+  'pump.data_received_from': '計算結果を反映しました',
+
+  // Pump - recommendation
+  'pump.suggestion_title': '推奨ポンプ特性',
+  'pump.assumed_speed': '想定回転数',
+  'pump.custom_speed': 'カスタム',
+  'pump.design_point': '設計点',
+  'pump.required_flow': '必要流量',
+  'pump.required_head': '必要全揚程',
+  'pump.specific_speed': '比速度 (Ns)',
+  'pump.recommended_type': '推奨ポンプ形式',
+  'pump.bep_range': 'BEP流量範囲',
+  'pump.max_npshr_allowed': '許容NPSHr上限',
+  'pump.estimated_power': '概算必要動力',
+  'pump.recommended_operating_range': '推奨運転範囲',
+  'pump.suggestion_note': '※ 実際のポンプ選定にはメーカーカタログを参照してください',
+  'pump.type.radial': '遠心（ラジアル）ポンプ',
+  'pump.type.francis': 'フランシス型ポンプ',
+  'pump.type.mixed_flow': '斜流ポンプ',
+  'pump.type.axial': '軸流ポンプ',
+  'pump.unit.kw': 'kW',
 };
 
 export default ja;
