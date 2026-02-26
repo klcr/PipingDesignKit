@@ -6,7 +6,7 @@
  */
 
 import { FittingResult, FittingInput, KValueMethod } from '../types';
-import { calcK3K, calcKFromCv, calcFittingLoss, DARBY_3K_REF, CV_REF } from './kValue';
+import { calcK3K, calcKFromCv, calcFittingLoss, DARBY_3K_REF, CV_REF, USER_K_REF } from './kValue';
 
 /** darby-3k.json の fitting エントリ */
 export interface Darby3KFittingEntry {
@@ -67,6 +67,28 @@ function resolveSingleFitting(
   density: number,
   velocity: number
 ): FittingResult {
+  // K value override の場合
+  if (input.kOverride !== undefined && input.kOverride >= 0) {
+    const loss = calcFittingLoss(input.kOverride, density, velocity);
+
+    let warning: string | undefined;
+    if (input.kOverride > 500) {
+      warning = `K=${input.kOverride}: unusually large K value`;
+    }
+
+    return {
+      id: input.fittingId,
+      description: `K=${input.kOverride} (user input)`,
+      quantity: input.quantity,
+      k_value: input.kOverride,
+      method: 'fixed_k' as KValueMethod,
+      dp_pa: loss.dp_pa * input.quantity,
+      head_loss_m: loss.head_m * input.quantity,
+      reference: USER_K_REF,
+      warning,
+    };
+  }
+
   // Cv override の場合
   if (input.cvOverride !== undefined && input.cvOverride > 0) {
     const k = calcKFromCv(input.cvOverride, id_mm);
@@ -91,6 +113,11 @@ function resolveSingleFitting(
       reference: CV_REF,
       warning,
     };
+  }
+
+  // Guard: custom entries must have an override
+  if (input.fittingId.startsWith('custom_')) {
+    throw new Error(`Custom fitting "${input.fittingId}" requires kOverride or cvOverride`);
   }
 
   // 固定K: entrances

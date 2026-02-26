@@ -15,6 +15,8 @@ export const PROJECT_FILE_VERSION = '1.0' as const;
 export interface FittingRowData {
   readonly fittingId: string;
   readonly quantity: number;
+  readonly kOverride?: number;
+  readonly cvOverride?: number;
 }
 
 // ── 単セグメント ──
@@ -107,7 +109,17 @@ function validateFittingRows(arr: unknown): FittingRowData[] {
     if (!isObject(item)) throw new Error(`fittings[${i}] must be an object`);
     if (!isString(item.fittingId)) throw new Error(`fittings[${i}].fittingId must be a string`);
     if (!isNumber(item.quantity)) throw new Error(`fittings[${i}].quantity must be a number`);
-    return { fittingId: item.fittingId, quantity: item.quantity };
+    let kOverride: number | undefined;
+    let cvOverride: number | undefined;
+    if (item.kOverride !== undefined) {
+      if (!isNumber(item.kOverride)) throw new Error(`fittings[${i}].kOverride must be a number`);
+      kOverride = item.kOverride;
+    }
+    if (item.cvOverride !== undefined) {
+      if (!isNumber(item.cvOverride)) throw new Error(`fittings[${i}].cvOverride must be a number`);
+      cvOverride = item.cvOverride;
+    }
+    return { fittingId: item.fittingId, quantity: item.quantity, kOverride, cvOverride };
   });
 }
 

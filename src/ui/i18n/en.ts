@@ -44,6 +44,8 @@ const en: Record<string, string> = {
   'fittings.quantity': 'Quantity',
   'fittings.add': 'Add Fitting',
   'fittings.k_value': 'K Value',
+  'fittings.custom_k': 'Custom (K value)',
+  'fittings.custom_cv': 'Custom (Cv)',
 
   // Elevation
   'elevation.title': 'Elevation',

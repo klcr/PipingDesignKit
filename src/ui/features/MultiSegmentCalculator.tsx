@@ -9,7 +9,7 @@ import { getFluidProperties } from '@domain/fluid/fluidProperties';
 import { getSolutionProperties } from '@domain/fluid/aqueousSolution';
 import {
   waterData, darby3kData, entranceExitData, getAvailableFittings, getAvailableFluids,
-  getFluidData, getFluidTempRange, getFluidEntry, getSolutionInput,
+  getFluidData, getFluidTempRange, getFluidEntry, getSolutionInput, getFluidRefLabel,
   FluidId, SolutionId,
 } from '@infrastructure/dataLoader';
 import type { SolutionFluidEntry } from '@infrastructure/dataLoader';
@@ -24,6 +24,8 @@ import type { ExplanationSnapshot } from './explanation/types';
 interface FittingRow {
   fittingId: string;
   quantity: number;
+  customK?: number;
+  customCv?: number;
 }
 
 interface SegmentFormState {
@@ -62,7 +64,7 @@ function createSegmentFromData(entry: MultiSegmentProjectData['segments'][number
     materialId: entry.materialId,
     pipeLength: entry.length_m,
     elevation: entry.elevation_m,
-    fittingRows: entry.fittings.map(f => ({ fittingId: f.fittingId, quantity: f.quantity })),
+    fittingRows: entry.fittings.map(f => ({ fittingId: f.fittingId, quantity: f.quantity, customK: f.kOverride, customCv: f.cvOverride })),
     collapsed: false,
   };
 }
@@ -117,7 +119,12 @@ export const MultiSegmentCalculator = forwardRef<MultiSegmentCalculatorHandle, M
           materialId: seg.materialId,
           length_m: seg.pipeLength,
           elevation_m: seg.elevation,
-          fittings: seg.fittingRows.filter(r => r.quantity > 0).map(r => ({ fittingId: r.fittingId, quantity: r.quantity })),
+          fittings: seg.fittingRows.filter(r => r.quantity > 0).map(r => ({
+            fittingId: r.fittingId,
+            quantity: r.quantity,
+            ...(r.customK != null ? { kOverride: r.customK } : {}),
+            ...(r.customCv != null ? { cvOverride: r.customCv } : {}),
+          })),
         })),
       };
     },
@@ -174,7 +181,12 @@ export const MultiSegmentCalculator = forwardRef<MultiSegmentCalculatorHandle, M
 
         const fittings = seg.fittingRows
           .filter(r => r.quantity > 0)
-          .map(r => ({ fittingId: r.fittingId, quantity: r.quantity }));
+          .map(r => ({
+            fittingId: r.fittingId,
+            quantity: r.quantity,
+            ...(r.fittingId === 'custom_k' && r.customK != null ? { kOverride: r.customK } : {}),
+            ...(r.fittingId === 'custom_cv' && r.customCv != null ? { cvOverride: r.customCv } : {}),
+          }));
 
         return {
           pipe: pipeSpec,
@@ -228,7 +240,7 @@ export const MultiSegmentCalculator = forwardRef<MultiSegmentCalculatorHandle, M
               }
             }} style={inputStyle}>
             {fluids.map(f => (
-              <option key={f.id} value={f.id}>{localizedName(locale, f.name, f.name_ja)}</option>
+              <option key={f.id} value={f.id}>{localizedName(locale, f.name, f.name_ja)} ({getFluidRefLabel(f)})</option>
             ))}
           </select>
         </Field>
@@ -372,7 +384,7 @@ interface SegmentEditorProps {
   isFirst: boolean;
   isLast: boolean;
   canRemove: boolean;
-  availableFittings: readonly { id: string; description: string; description_ja?: string }[];
+  availableFittings: readonly { id: string; description: string; description_ja?: string; refValue: string }[];
   materials: readonly { id: string; name: string; name_ja: string; roughness_mm: number }[];
   t: (key: string) => string;
   locale: 'ja' | 'en';
@@ -391,7 +403,7 @@ function SegmentEditor({ index, segment, onUpdate, onRemove, onMoveUp, onMoveDow
     onUpdate({ fittingRows: segment.fittingRows.filter((_, i) => i !== fi) });
   };
 
-  const updateFitting = (fi: number, field: keyof FittingRow, value: string | number) => {
+  const updateFitting = (fi: number, field: string, value: string | number) => {
     const updated = [...segment.fittingRows];
     updated[fi] = { ...updated[fi], [field]: value };
     onUpdate({ fittingRows: updated });
@@ -480,13 +492,21 @@ function SegmentEditor({ index, segment, onUpdate, onRemove, onMoveUp, onMoveDow
           <div style={{ marginTop: '8px' }}>
             <span style={{ fontSize: '0.9em', fontWeight: 'bold', color: '#555' }}>{t('fittings.title')}</span>
             {segment.fittingRows.map((row, fi) => (
-              <div key={fi} style={{ display: 'flex', gap: '8px', marginTop: '4px', alignItems: 'center' }}>
+              <div key={fi} style={{ display: 'flex', gap: '8px', marginTop: '4px', alignItems: 'center', flexWrap: 'wrap' }}>
                 <select value={row.fittingId} onChange={e => updateFitting(fi, 'fittingId', e.target.value)}
                   style={{ ...inputStyle, flex: 1 }}>
                   {availableFittings.map(f => (
-                    <option key={f.id} value={f.id}>{localizedName(locale, f.description, f.description_ja)}</option>
+                    <option key={f.id} value={f.id}>{localizedName(locale, f.description, f.description_ja)}{f.refValue ? ` (${f.refValue})` : ''}</option>
                   ))}
                 </select>
+                {row.fittingId === 'custom_k' && (
+                  <input type="number" value={row.customK ?? ''} onChange={e => updateFitting(fi, 'customK', Number(e.target.value))}
+                    placeholder="K" min={0} step={0.1} style={{ ...inputStyle, width: '80px' }} />
+                )}
+                {row.fittingId === 'custom_cv' && (
+                  <input type="number" value={row.customCv ?? ''} onChange={e => updateFitting(fi, 'customCv', Number(e.target.value))}
+                    placeholder="Cv" min={0.1} step={1} style={{ ...inputStyle, width: '80px' }} />
+                )}
                 <input type="number" value={row.quantity} onChange={e => updateFitting(fi, 'quantity', Number(e.target.value))}
                   min={0} style={{ ...inputStyle, width: '60px' }} />
                 <button onClick={() => removeFitting(fi)} style={{ padding: '4px 8px', cursor: 'pointer' }}>&#10005;</button>
@@ -601,7 +621,7 @@ function SegmentResultDetail({ result, t, fittingDescMap }: { result: SegmentRes
           <tbody>
             {result.fittingDetails.map((fd, i) => (
               <tr key={i} style={{ borderBottom: '1px solid #eee' }}>
-                <td style={{ padding: '3px' }}>{fittingDescMap.get(fd.id) ?? fd.description}</td>
+                <td style={{ padding: '3px' }}>{fd.id.startsWith('custom_') ? fd.description : (fittingDescMap.get(fd.id) ?? fd.description)}</td>
                 <td style={{ textAlign: 'right', padding: '3px' }}>{fd.quantity}</td>
                 <td style={{ textAlign: 'right', padding: '3px' }}>{formatNum(fd.k_value, 4)}</td>
                 <td style={{ textAlign: 'right', padding: '3px' }}>{formatPa(fd.dp_pa)}</td>

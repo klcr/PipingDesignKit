@@ -90,6 +90,7 @@ export interface FittingInput {
   readonly fittingId: string;
   readonly quantity: number;
   readonly cvOverride?: number;
+  readonly kOverride?: number;
 }
 
 export interface SegmentResult {

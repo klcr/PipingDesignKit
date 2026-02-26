@@ -96,4 +96,9 @@ export function calcTotalFittingLoss(
   return { totalK, dp_pa, head_m };
 }
 
-export { DARBY_3K_REF, CV_REF };
+const USER_K_REF: Reference = {
+  source: 'User input',
+  equation: 'K = (user-specified)',
+};
+
+export { DARBY_3K_REF, CV_REF, USER_K_REF };
