@@ -1,18 +1,18 @@
 import { describe, it, expect } from 'vitest';
 import { calcKCrane, calcK3K, calcKFromCv, calcFittingLoss, calcTotalFittingLoss } from '../kValue';
 
-describe('calcKCrane', () => {
-  it('should calculate K for 90° LR elbow (L/D=14, f_T=0.019)', () => {
+describe('calcKCrane (L/D method)', () => {
+  it('should calculate K = f_T × L/D for L/D=14, f_T=0.019', () => {
     // K = 0.019 × 14 = 0.266
     expect(calcKCrane(14, 0.019)).toBeCloseTo(0.266, 3);
   });
 
-  it('should calculate K for gate valve full open (L/D=8, f_T=0.017)', () => {
+  it('should calculate K = f_T × L/D for L/D=8, f_T=0.017', () => {
     // K = 0.017 × 8 = 0.136
     expect(calcKCrane(8, 0.017)).toBeCloseTo(0.136, 3);
   });
 
-  it('should calculate K for globe valve (L/D=340, f_T=0.019)', () => {
+  it('should calculate K = f_T × L/D for L/D=340, f_T=0.019', () => {
     // K = 0.019 × 340 = 6.46
     expect(calcKCrane(340, 0.019)).toBeCloseTo(6.46, 1);
   });

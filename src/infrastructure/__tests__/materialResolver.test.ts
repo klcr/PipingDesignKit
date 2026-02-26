@@ -23,7 +23,7 @@ describe('resolveMaterial', () => {
     expect(mat).not.toBeNull();
     expect(mat!.id).toBe('carbon_steel_new');
     expect(mat!.roughness_mm).toBe(0.046);
-    expect(mat!.reference.source).toBe('Crane TP-410');
+    expect(mat!.reference.source).toBe('Moody, 1944');
   });
 
   it('should return null for nonexistent material', () => {

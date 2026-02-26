@@ -4,16 +4,16 @@ import { calcMultiSegment } from '../calcMultiSegment';
 import { CalcRouteInput, SegmentDefinition } from '../types';
 import { PipeSpec, PipeMaterial } from '@domain/types';
 import { WaterData } from '@domain/fluid/waterProperties';
-import { CraneData, FtData } from '@domain/fittings/fittingLoss';
+import { Darby3KData, EntranceExitData } from '@domain/fittings/fittingLoss';
 import { RouteNode, RouteConversionConfig } from '@domain/route/types';
 
 import waterJson from '@data/fluid-properties/water.json';
-import craneJson from '@data/fittings-db/crane-tp410.json';
-import ftJson from '@data/fittings-db/ft-values.json';
+import darby3kJson from '@data/fittings-db/darby-3k.json';
+import entranceExitJson from '@data/fittings-db/entrance-exit-k.json';
 
 const waterData = waterJson as unknown as WaterData;
-const craneData = craneJson as unknown as CraneData;
-const ftData = ftJson as unknown as FtData;
+const darby3kData = darby3kJson as unknown as Darby3KData;
+const entranceExitData = entranceExitJson as unknown as EntranceExitData;
 
 const pipe2inch: PipeSpec = {
   standard: 'ASME B36.10M',
@@ -29,7 +29,7 @@ const carbonSteel: PipeMaterial = {
   id: 'carbon_steel_new',
   name: 'Carbon steel (new)',
   roughness_mm: 0.046,
-  reference: { source: 'Crane TP-410' },
+  reference: { source: 'Moody, 1944' },
 };
 
 const defaultConfig: RouteConversionConfig = {
@@ -54,14 +54,13 @@ describe('calcRoute', () => {
       conversionConfig: defaultConfig,
     };
 
-    const result = calcRoute(input, waterData, craneData, ftData);
+    const result = calcRoute(input, waterData, darby3kData, entranceExitData);
     expect(result.segmentResults).toHaveLength(2);
     expect(result.dp_total).toBeGreaterThan(0);
     expect(result.head_total_m).toBeGreaterThan(0);
   });
 
   it('直線ルートと calcMultiSegment の結果が一致する', () => {
-    // 直線ルート（エルボなし）: 10m の直管
     const routeInput: CalcRouteInput = {
       temperature_c: 20,
       flowRate_m3h: 10,
@@ -73,9 +72,8 @@ describe('calcRoute', () => {
       conversionConfig: defaultConfig,
     };
 
-    const routeResult = calcRoute(routeInput, waterData, craneData, ftData);
+    const routeResult = calcRoute(routeInput, waterData, darby3kData, entranceExitData);
 
-    // 同等のマルチセグメント入力
     const seg: SegmentDefinition = {
       pipe: pipe2inch,
       material: carbonSteel,
@@ -85,7 +83,7 @@ describe('calcRoute', () => {
     };
     const multiResult = calcMultiSegment(
       { temperature_c: 20, flowRate_m3h: 10, segments: [seg] },
-      waterData, craneData, ftData
+      waterData, darby3kData, entranceExitData
     );
 
     expect(routeResult.dp_total).toBeCloseTo(multiResult.dp_total, 4);
@@ -93,7 +91,6 @@ describe('calcRoute', () => {
   });
 
   it('L 字ルートと手動エルボ付きマルチセグメントの結果が一致する', () => {
-    // L 字ルート: (0,0,0) → (10,0,0) → (10,10,0)
     const routeInput: CalcRouteInput = {
       temperature_c: 20,
       flowRate_m3h: 10,
@@ -105,9 +102,8 @@ describe('calcRoute', () => {
       conversionConfig: defaultConfig,
     };
 
-    const routeResult = calcRoute(routeInput, waterData, craneData, ftData);
+    const routeResult = calcRoute(routeInput, waterData, darby3kData, entranceExitData);
 
-    // 手動で同じ構成を組む
     const seg1: SegmentDefinition = {
       pipe: pipe2inch,
       material: carbonSteel,
@@ -124,7 +120,7 @@ describe('calcRoute', () => {
     };
     const multiResult = calcMultiSegment(
       { temperature_c: 20, flowRate_m3h: 10, segments: [seg1, seg2] },
-      waterData, craneData, ftData
+      waterData, darby3kData, entranceExitData
     );
 
     expect(routeResult.dp_total).toBeCloseTo(multiResult.dp_total, 4);
@@ -143,13 +139,12 @@ describe('calcRoute', () => {
       conversionConfig: defaultConfig,
     };
 
-    const result = calcRoute(input, waterData, craneData, ftData);
+    const result = calcRoute(input, waterData, darby3kData, entranceExitData);
     expect(result.dp_elevation_total).toBeGreaterThan(0);
     expect(result.head_elevation_total_m).toBeCloseTo(10, 1);
   });
 
   it('追加継手がルート計算に反映される', () => {
-    // バルブ付きルート
     const inputWithValve: CalcRouteInput = {
       temperature_c: 20,
       flowRate_m3h: 10,
@@ -164,7 +159,6 @@ describe('calcRoute', () => {
       conversionConfig: defaultConfig,
     };
 
-    // バルブなしルート
     const inputWithout: CalcRouteInput = {
       temperature_c: 20,
       flowRate_m3h: 10,
@@ -174,8 +168,8 @@ describe('calcRoute', () => {
       conversionConfig: defaultConfig,
     };
 
-    const withValve = calcRoute(inputWithValve, waterData, craneData, ftData);
-    const without = calcRoute(inputWithout, waterData, craneData, ftData);
+    const withValve = calcRoute(inputWithValve, waterData, darby3kData, entranceExitData);
+    const without = calcRoute(inputWithout, waterData, darby3kData, entranceExitData);
     expect(withValve.dp_total).toBeGreaterThan(without.dp_total);
   });
 });

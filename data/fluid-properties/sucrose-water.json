@@ -1,5 +1,6 @@
 {
   "referenceId": "nbs440-icumsa",
+  "dataLicense": "public-domain",
   "reference": {
     "source": "NBS Circular 440 (1942); ICUMSA SPS-3; Perry's Chemical Engineers' Handbook 8th ed. Table 2-88",
     "equation": "Density: 5th-order polynomial fit to ICUMSA table (20°C); Viscosity: 2D table interpolation"

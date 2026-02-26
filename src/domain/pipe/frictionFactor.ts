@@ -19,7 +19,7 @@ const SWAMEE_JAIN_REF: Reference = {
 };
 
 const VON_KARMAN_REF: Reference = {
-  source: 'Crane TP-410, Von Kármán equation',
+  source: 'Von Kármán, 1930; Colebrook & White, 1937',
   equation: 'f_T = 1/[2×log₁₀(3.7D/ε)]²',
 };
 
@@ -90,7 +90,7 @@ export function swameeJainFrictionFactor(
  *
  * f_T = 1 / [2 × log₁₀(3.7D/ε)]²
  *
- * Crane TP-410 の継手K値計算に使用。
+ * 完全乱流域の摩擦係数算出に使用。
  * f_T は Re に依存しない（完全乱流域の漸近値）。
  */
 export function calcFtFullyTurbulent(

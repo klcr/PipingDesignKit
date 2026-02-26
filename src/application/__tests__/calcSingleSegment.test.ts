@@ -3,15 +3,15 @@ import { calcSingleSegment } from '../calcSingleSegment';
 import { CalcSingleSegmentInput } from '../types';
 import { PipeSpec, PipeMaterial, GRAVITY } from '@domain/types';
 import { WaterData } from '@domain/fluid/waterProperties';
-import { CraneData, FtData } from '@domain/fittings/fittingLoss';
+import { Darby3KData, EntranceExitData } from '@domain/fittings/fittingLoss';
 
 import waterJson from '@data/fluid-properties/water.json';
-import craneJson from '@data/fittings-db/crane-tp410.json';
-import ftJson from '@data/fittings-db/ft-values.json';
+import darby3kJson from '@data/fittings-db/darby-3k.json';
+import entranceExitJson from '@data/fittings-db/entrance-exit-k.json';
 
 const waterData = waterJson as unknown as WaterData;
-const craneData = craneJson as unknown as CraneData;
-const ftData = ftJson as unknown as FtData;
+const darby3kData = darby3kJson as unknown as Darby3KData;
+const entranceExitData = entranceExitJson as unknown as EntranceExitData;
 
 // 2" Sch40 ANSI pipe (same as pressureDrop.test.ts)
 const pipe2inch: PipeSpec = {
@@ -28,7 +28,7 @@ const carbonSteel: PipeMaterial = {
   id: 'carbon_steel_new',
   name: 'Carbon steel (new)',
   roughness_mm: 0.046,
-  reference: { source: 'Crane TP-410' },
+  reference: { source: 'Moody, 1944' },
 };
 
 describe('calcSingleSegment', () => {
@@ -45,26 +45,16 @@ describe('calcSingleSegment', () => {
       ],
     };
 
-    const result = calcSingleSegment(input, waterData, craneData, ftData);
+    const result = calcSingleSegment(input, waterData, darby3kData, entranceExitData);
 
-    // Flow rate conversion: 10 m³/h → 10/3600 m³/s
-    // Velocity: Q/A = (10/3600) / (π/4 × 0.0525²) ≈ 1.283 m/s
     expect(result.velocity_m_s).toBeCloseTo(1.283, 2);
-
-    // Reynolds ≈ 67,100
     expect(result.reynolds).toBeCloseTo(67100, -2);
     expect(result.flowRegime).toBe('turbulent');
-
-    // Total should include friction + fittings + elevation
     expect(result.dp_total).toBeCloseTo(
       result.dp_friction + result.dp_fittings + result.dp_elevation,
       0
     );
-
-    // Elevation ≈ ρgΔz
     expect(result.dp_elevation).toBeCloseTo(998.2 * GRAVITY * 5, -1);
-
-    // Head should be at least the static head
     expect(result.head_total_m).toBeGreaterThan(5);
     expect(result.references.length).toBeGreaterThan(0);
   });
@@ -80,10 +70,8 @@ describe('calcSingleSegment', () => {
       fittings: [],
     };
 
-    const result = calcSingleSegment(input, waterData, craneData, ftData);
+    const result = calcSingleSegment(input, waterData, darby3kData, entranceExitData);
 
-    // At 80°C, density is lower (~971 kg/m³) and viscosity much lower
-    // So Reynolds is higher → different friction factor
     expect(result.reynolds).toBeGreaterThan(100000);
     expect(result.flowRegime).toBe('turbulent');
   });
@@ -102,11 +90,10 @@ describe('calcSingleSegment', () => {
       ],
     };
 
-    const result = calcSingleSegment(input, waterData, craneData, ftData);
+    const result = calcSingleSegment(input, waterData, darby3kData, entranceExitData);
 
     expect(result.dp_friction).toBe(0);
     expect(result.dp_elevation).toBe(0);
-    // Entrance K=0.5 + Exit K=1.0 → combined ≈ 1233 Pa
     expect(result.dp_fittings).toBeGreaterThan(1000);
     expect(result.dp_fittings).toBeLessThan(1500);
   });

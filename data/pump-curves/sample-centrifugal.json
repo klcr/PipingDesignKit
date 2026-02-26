@@ -1,5 +1,6 @@
 {
   "referenceId": "sample-pump-data",
+  "dataLicense": "factual-data",
   "pumpId": "sample-centrifugal-2inch",
   "manufacturer": "Sample Manufacturer",
   "model": "CP-50-200",

@@ -2,12 +2,12 @@ import { describe, it, expect } from 'vitest';
 import { calcSystemPressureDrop } from '../systemPressureDrop';
 import { calcSegmentPressureDrop } from '../pressureDrop';
 import { SegmentInput, SystemInput, PipeSpec, PipeMaterial, FluidProperties, GRAVITY } from '../../types';
-import { CraneData, FtData } from '../../fittings/fittingLoss';
-import craneJson from '../../../../data/fittings-db/crane-tp410.json';
-import ftJson from '../../../../data/fittings-db/ft-values.json';
+import { Darby3KData, EntranceExitData } from '../../fittings/fittingLoss';
+import darby3kJson from '../../../../data/fittings-db/darby-3k.json';
+import entranceExitJson from '../../../../data/fittings-db/entrance-exit-k.json';
 
-const craneData = craneJson as unknown as CraneData;
-const ftData = ftJson as unknown as FtData;
+const darby3kData = darby3kJson as unknown as Darby3KData;
+const entranceExitData = entranceExitJson as unknown as EntranceExitData;
 
 // 2" Sch40 ANSI pipe
 const pipe2inch: PipeSpec = {
@@ -35,7 +35,7 @@ const carbonSteel: PipeMaterial = {
   id: 'carbon_steel_new',
   name: 'Carbon steel (new)',
   roughness_mm: 0.046,
-  reference: { source: 'Crane TP-410' },
+  reference: { source: 'Moody, 1944' },
 };
 
 
@@ -52,7 +52,7 @@ const flowRate = 10 / 3600; // 10 m³/h → m³/s
 describe('calcSystemPressureDrop', () => {
   it('should return zeros for empty segment array', () => {
     const input: SystemInput = { segments: [] };
-    const result = calcSystemPressureDrop(input, craneData, ftData);
+    const result = calcSystemPressureDrop(input, darby3kData, entranceExitData);
 
     expect(result.segmentResults).toHaveLength(0);
     expect(result.dp_total).toBe(0);
@@ -71,10 +71,10 @@ describe('calcSystemPressureDrop', () => {
       fittings: [{ fittingId: 'elbow_90_lr_welded', quantity: 4 }],
     };
 
-    const directResult = calcSegmentPressureDrop(segment, craneData, ftData);
+    const directResult = calcSegmentPressureDrop(segment, darby3kData, entranceExitData);
 
     const systemInput: SystemInput = { segments: [segment] };
-    const systemResult = calcSystemPressureDrop(systemInput, craneData, ftData);
+    const systemResult = calcSystemPressureDrop(systemInput, darby3kData, entranceExitData);
 
     expect(systemResult.segmentResults).toHaveLength(1);
     expect(systemResult.dp_friction_total).toBeCloseTo(directResult.dp_friction, 4);
@@ -106,16 +106,14 @@ describe('calcSystemPressureDrop', () => {
     };
 
     const systemInput: SystemInput = { segments: [seg1, seg2] };
-    const result = calcSystemPressureDrop(systemInput, craneData, ftData);
+    const result = calcSystemPressureDrop(systemInput, darby3kData, entranceExitData);
 
     expect(result.segmentResults).toHaveLength(2);
 
-    // Velocities should differ (different pipe diameters, same flow rate)
     expect(result.segmentResults[0].velocity_m_s).not.toBeCloseTo(
       result.segmentResults[1].velocity_m_s, 1
     );
 
-    // Totals = sum of individual segments
     const sumFriction = result.segmentResults[0].dp_friction + result.segmentResults[1].dp_friction;
     const sumFittings = result.segmentResults[0].dp_fittings + result.segmentResults[1].dp_fittings;
     const sumElevation = result.segmentResults[0].dp_elevation + result.segmentResults[1].dp_elevation;
@@ -140,11 +138,10 @@ describe('calcSystemPressureDrop', () => {
     const systemInput: SystemInput = {
       segments: [makeSeg(0), makeSeg(5), makeSeg(-2)],
     };
-    const result = calcSystemPressureDrop(systemInput, craneData, ftData);
+    const result = calcSystemPressureDrop(systemInput, darby3kData, entranceExitData);
 
     expect(result.segmentResults).toHaveLength(3);
 
-    // Net elevation = 0 + 5 + (-2) = 3 m
     const netElevation = 0 + 5 + (-2);
     expect(result.dp_elevation_total).toBeCloseTo(water20C.density * GRAVITY * netElevation, -1);
     expect(result.head_elevation_total_m).toBeCloseTo(netElevation, 4);
@@ -161,13 +158,11 @@ describe('calcSystemPressureDrop', () => {
       fittings: [],
     };
 
-    // Same material and fluid → same references
     const seg2: SegmentInput = { ...seg1, length_m: 20 };
 
     const systemInput: SystemInput = { segments: [seg1, seg2] };
-    const result = calcSystemPressureDrop(systemInput, craneData, ftData);
+    const result = calcSystemPressureDrop(systemInput, darby3kData, entranceExitData);
 
-    // Each segment produces the same references; they should be deduplicated
     const sources = result.references.map(r => r.source);
     const uniqueSources = [...new Set(sources)];
     expect(sources.length).toBe(uniqueSources.length);

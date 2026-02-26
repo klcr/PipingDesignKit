@@ -1,13 +1,6 @@
 {
   "sources": [
     {
-      "id": "crane-tp410-2009",
-      "title": "Flow of Fluids Through Valves, Fittings, and Pipe",
-      "author": "Crane Co.",
-      "edition": "Technical Paper No. 410M, 2009 Edition",
-      "isbn": "1-40052-712-0"
-    },
-    {
       "id": "churchill-1977",
       "title": "Friction Factor Equation Spans All Fluid Flow Regimes",
       "author": "Churchill, S.W.",
@@ -78,18 +71,22 @@
       "pages": "354-380"
     },
     {
-      "id": "ashrae-2021-eg30",
-      "title": "ASHRAE Handbook — Fundamentals, Chapter 31: Physical Properties of Secondary Coolants",
-      "author": "ASHRAE",
-      "edition": "2021 Edition",
-      "note": "30% ethylene glycol aqueous solution"
+      "id": "colebrook-1937",
+      "title": "Turbulent Flow in Pipes, with Particular Reference to the Transition Region Between the Smooth and Rough Pipe Laws",
+      "author": "Colebrook, C.F. and White, C.M.",
+      "journal": "Journal of the Institution of Civil Engineers",
+      "volume": "11(4)",
+      "year": 1937,
+      "pages": "133-156"
     },
     {
-      "id": "ashrae-2021-eg50",
-      "title": "ASHRAE Handbook — Fundamentals, Chapter 31: Physical Properties of Secondary Coolants",
-      "author": "ASHRAE",
-      "edition": "2021 Edition",
-      "note": "50% ethylene glycol aqueous solution"
+      "id": "idelchik-2007",
+      "title": "Handbook of Hydraulic Resistance",
+      "author": "Idelchik, I.E.",
+      "edition": "4th Edition",
+      "publisher": "Begell House",
+      "year": 2007,
+      "isbn": "978-1-56700-251-5"
     },
     {
       "id": "sample-pump-data",

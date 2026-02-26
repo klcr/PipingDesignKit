@@ -1,5 +1,6 @@
 {
   "referenceId": "asada-2012",
+  "dataLicense": "factual-data",
   "reference": {
     "source": "Asada (2012), Material Characterization of Alcohol-Water Mixtures, Univ. of Hawaii thesis (open access)",
     "equation": "Piecewise 4th-order polynomial for pure methanol; volume-fraction linear mixing for density; log mixing rule for viscosity"

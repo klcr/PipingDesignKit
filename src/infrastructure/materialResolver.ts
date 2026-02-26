@@ -30,6 +30,6 @@ export function resolveMaterial(materialId: string): PipeMaterial | null {
     id: mat.id,
     name: mat.name,
     roughness_mm: mat.roughness_mm,
-    reference: { source: 'Crane TP-410' },
+    reference: { source: 'Moody, 1944' },
   };
 }

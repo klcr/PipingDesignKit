@@ -15,9 +15,9 @@
 
 import { SegmentInput, SegmentResult, Reference } from '../types';
 import { calcFlowArea, calcVelocity, calcReynolds, classifyFlow } from '../pipe/pipeGeometry';
-import { churchillFrictionFactor, calcFtFullyTurbulent } from '../pipe/frictionFactor';
+import { churchillFrictionFactor } from '../pipe/frictionFactor';
 import { calcStraightPipeLoss, pressureToHead } from '../pipe/straightPipeLoss';
-import { resolveFittings, CraneData, FtData } from '../fittings/fittingLoss';
+import { resolveFittings, Darby3KData, EntranceExitData } from '../fittings/fittingLoss';
 import { calcElevationLoss } from './headLoss';
 
 /**
@@ -25,8 +25,8 @@ import { calcElevationLoss } from './headLoss';
  */
 export function calcSegmentPressureDrop(
   input: SegmentInput,
-  craneData: CraneData,
-  ftData: FtData
+  darby3kData: Darby3KData,
+  entranceExitData: EntranceExitData
 ): SegmentResult {
   const { pipe, material, fluid, flowRate_m3s, length_m, elevation_m, fittings } = input;
 
@@ -45,19 +45,15 @@ export function calcSegmentPressureDrop(
   const frictionResult = churchillFrictionFactor(reynolds, material.roughness_mm, pipe.id_mm);
   const f = frictionResult.f;
 
-  // f_T: 継手K値計算用（完全乱流摩擦係数）
-  // NPS が ft-values.json にあればそれを使い、なければ Von Kármán で計算
-  const nps = pipe.nps;
-  const ftValue = ftData.values[nps] ?? calcFtFullyTurbulent(material.roughness_mm, pipe.id_mm).f;
-
   // Step 6: 直管圧損
   const dp_friction = calcStraightPipeLoss(f, length_m, pipe.id_mm, fluid.density, velocity);
 
-  // Step 7: 継手圧損
+  // Step 7: 継手圧損（Darby 3-K法）
   const fittingDetails = resolveFittings(
     fittings,
-    craneData,
-    ftValue,
+    darby3kData,
+    entranceExitData,
+    reynolds,
     pipe.id_mm,
     fluid.density,
     velocity

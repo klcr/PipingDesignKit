@@ -33,7 +33,7 @@ repository（データソース層）
 ├── fluid-properties/     … 流体物性（密度・粘度・蒸気圧 etc.）
 ├── pipe-specs/           … 配管仕様（内径・粗度・スケジュール別寸法）
 ├── fittings-db/          … 継手の局部損失係数（Cv値 / K値 / 等価長）
-└── references/           … 出典情報（Crane TP-410, Moody線図 etc.）
+└── references/           … 出典情報（Darby 3-K, Moody線図 etc.）
 
 ビルド時にこれらをバンドル → 静的サイトとしてデプロイ
 ```

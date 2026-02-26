@@ -1,61 +1,68 @@
 /**
  * 継手損失の解決 — データファイルからK値を計算
  *
- * crane-tp410.json と ft-values.json を使い、
- * 継手ID + パイプサイズ → K値 → 圧損を計算する。
+ * darby-3k.json と entrance-exit-k.json を使い、
+ * 継手ID + パイプサイズ + Re → K値 → 圧損を計算する。
  */
 
 import { FittingResult, FittingInput, KValueMethod } from '../types';
-import { calcKCrane, calcKFromCv, calcFittingLoss, CRANE_REF, CV_REF } from './kValue';
+import { calcK3K, calcKFromCv, calcFittingLoss, DARBY_3K_REF, CV_REF } from './kValue';
 
-/** crane-tp410.json の fitting エントリ */
-export interface CraneFittingEntry {
+/** darby-3k.json の fitting エントリ */
+export interface Darby3KFittingEntry {
   readonly id: string;
   readonly type: string;
   readonly description: string;
   readonly description_ja?: string;
-  readonly ldRatio: number;
-  readonly connection: string;
+  readonly k1: number;
+  readonly ki: number;
+  readonly kd: number;
 }
 
-/** crane-tp410.json の entrance/exit エントリ */
-export interface CraneFixedKEntry {
+/** entrance-exit-k.json の entrance/exit エントリ */
+export interface FixedKEntry {
   readonly id: string;
   readonly description: string;
   readonly description_ja?: string;
   readonly k: number;
 }
 
-/** crane-tp410.json のルート型 */
-export interface CraneData {
-  readonly fittings: readonly CraneFittingEntry[];
-  readonly entrances: readonly CraneFixedKEntry[];
-  readonly exits: readonly CraneFixedKEntry[];
+/** darby-3k.json のルート型 */
+export interface Darby3KData {
+  readonly fittings: readonly Darby3KFittingEntry[];
 }
 
-/** ft-values.json の型 */
-export interface FtData {
-  readonly values: Record<string, number>;
+/** entrance-exit-k.json のルート型 */
+export interface EntranceExitData {
+  readonly entrances: readonly FixedKEntry[];
+  readonly exits: readonly FixedKEntry[];
 }
+
+const ENTRANCE_EXIT_REF = {
+  source: 'Idelchik, 2007',
+  page: 'Diagrams 3-1, 11-1',
+};
 
 /**
  * 継手入力リストから計算済みFittingResultリストを生成する
  */
 export function resolveFittings(
   inputs: readonly FittingInput[],
-  craneData: CraneData,
-  ft: number,
+  darby3kData: Darby3KData,
+  entranceExitData: EntranceExitData,
+  reynolds: number,
   id_mm: number,
   density: number,
   velocity: number
 ): FittingResult[] {
-  return inputs.map(input => resolveSingleFitting(input, craneData, ft, id_mm, density, velocity));
+  return inputs.map(input => resolveSingleFitting(input, darby3kData, entranceExitData, reynolds, id_mm, density, velocity));
 }
 
 function resolveSingleFitting(
   input: FittingInput,
-  craneData: CraneData,
-  ft: number,
+  darby3kData: Darby3KData,
+  entranceExitData: EntranceExitData,
+  reynolds: number,
   id_mm: number,
   density: number,
   velocity: number
@@ -87,7 +94,7 @@ function resolveSingleFitting(
   }
 
   // 固定K: entrances
-  const entrance = craneData.entrances.find(e => e.id === input.fittingId);
+  const entrance = entranceExitData.entrances.find(e => e.id === input.fittingId);
   if (entrance) {
     const loss = calcFittingLoss(entrance.k, density, velocity);
     return {
@@ -98,12 +105,12 @@ function resolveSingleFitting(
       method: 'fixed_k' as KValueMethod,
       dp_pa: loss.dp_pa * input.quantity,
       head_loss_m: loss.head_m * input.quantity,
-      reference: { source: 'Crane TP-410', page: 'A-29' },
+      reference: ENTRANCE_EXIT_REF,
     };
   }
 
   // 固定K: exits
-  const exit = craneData.exits.find(e => e.id === input.fittingId);
+  const exit = entranceExitData.exits.find(e => e.id === input.fittingId);
   if (exit) {
     const loss = calcFittingLoss(exit.k, density, velocity);
     return {
@@ -114,17 +121,18 @@ function resolveSingleFitting(
       method: 'fixed_k' as KValueMethod,
       dp_pa: loss.dp_pa * input.quantity,
       head_loss_m: loss.head_m * input.quantity,
-      reference: { source: 'Crane TP-410', page: 'A-29' },
+      reference: ENTRANCE_EXIT_REF,
     };
   }
 
-  // L/D法: fittings
-  const fitting = craneData.fittings.find(f => f.id === input.fittingId);
+  // Darby 3-K法: fittings
+  const fitting = darby3kData.fittings.find(f => f.id === input.fittingId);
   if (!fitting) {
     throw new Error(`Fitting not found: ${input.fittingId}`);
   }
 
-  const k = calcKCrane(fitting.ldRatio, ft);
+  const id_inch = id_mm / 25.4;
+  const k = calcK3K(reynolds, id_inch, fitting.k1, fitting.ki, fitting.kd);
   const loss = calcFittingLoss(k, density, velocity);
 
   return {
@@ -132,9 +140,9 @@ function resolveSingleFitting(
     description: fitting.description,
     quantity: input.quantity,
     k_value: k,
-    method: 'crane_ld' as KValueMethod,
+    method: '3k' as KValueMethod,
     dp_pa: loss.dp_pa * input.quantity,
     head_loss_m: loss.head_m * input.quantity,
-    reference: CRANE_REF,
+    reference: DARBY_3K_REF,
   };
 }

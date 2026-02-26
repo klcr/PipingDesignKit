@@ -23,7 +23,7 @@ const testMaterial: PipeMaterial = {
   id: 'carbon_steel_new',
   name: 'Carbon Steel (new)',
   roughness_mm: 0.046,
-  reference: { source: 'Crane TP-410', page: 'A-23' },
+  reference: { source: 'Moody, 1944' },
 };
 
 const testFluid: FluidProperties = {

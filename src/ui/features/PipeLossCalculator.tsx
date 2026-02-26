@@ -7,7 +7,7 @@ import { SegmentResult } from '@domain/types';
 import { getFluidProperties } from '@domain/fluid/fluidProperties';
 import { getSolutionProperties } from '@domain/fluid/aqueousSolution';
 import {
-  waterData, craneData, ftData, getAvailableFittings, getAvailableFluids,
+  waterData, darby3kData, entranceExitData, getAvailableFittings, getAvailableFluids,
   getFluidData, getFluidTempRange, getFluidEntry, getSolutionInput,
   FluidId, SolutionId,
 } from '@infrastructure/dataLoader';
@@ -132,7 +132,7 @@ export const PipeLossCalculator = forwardRef<PipeLossCalculatorHandle, PipeLossC
 
       const res = calcSingleSegment(
         { temperature_c: temperature, pipe: pipeSpec, material, flowRate_m3h: flowRate, length_m: pipeLength, elevation_m: elevation, fittings, fluid },
-        waterData, craneData, ftData
+        waterData, darby3kData, entranceExitData
       );
       setResult(res);
     } catch (e) {

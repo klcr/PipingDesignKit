@@ -1,5 +1,6 @@
 {
   "referenceId": "sharqawy-2010",
+  "dataLicense": "factual-data",
   "fluid": "seawater",
   "description": "Seawater properties at 3.5% salinity by temperature",
   "salinity_percent": 3.5,
