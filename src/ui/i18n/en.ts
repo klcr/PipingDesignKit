@@ -213,6 +213,111 @@ const en: Record<string, string> = {
   'pump.type.mixed_flow': 'Mixed Flow Pump',
   'pump.type.axial': 'Axial Flow Pump',
   'pump.unit.kw': 'kW',
+
+  // Explanation tab
+  'tab.explain': 'Explanation',
+  'action.send_to_explanation': 'View Explanation',
+  'action.send_pump_to_explanation': 'View Pump Explanation',
+  'explain.title': 'Calculation Walkthrough',
+  'explain.subtitle': 'Step-by-step explanation of the calculations performed with your current input values.',
+  'explain.no_data': 'No calculation data available',
+  'explain.no_data_hint': 'Run a calculation in any tab and click "View Explanation" to see the detailed walkthrough.',
+
+  // Section 1: Fluid
+  'explain.s1_title': 'Fluid Properties',
+  'explain.s1_desc': 'The starting point for pressure drop calculation is determining the fluid density ρ and viscosity μ. These values vary with temperature and fluid type, obtained from data tables or property correlations.',
+
+  // Section 2: Geometry
+  'explain.s2_title': 'Pipe Geometry',
+  'explain.s2_desc': 'The flow cross-sectional area A is calculated from the pipe inner diameter D, which is determined by the pipe standard (NPS/DN) and schedule.',
+
+  // Section 3: Velocity
+  'explain.s3_title': 'Flow Velocity',
+  'explain.s3_desc': 'The mean flow velocity V is obtained by dividing the volumetric flow rate Q by the flow area A. Typical design velocities for piping are 1–3 m/s.',
+  'explain.velocity_high': 'Velocity exceeds 3 m/s. This may cause erosion or excessive noise.',
+  'explain.velocity_low': 'Velocity is below 0.5 m/s. This may cause slurry settling or scale buildup.',
+
+  // Section 4: Reynolds
+  'explain.s4_title': 'Reynolds Number',
+  'explain.s4_desc': 'The Reynolds number Re is a dimensionless number representing the ratio of inertial forces to viscous forces, used to classify the flow regime. Re < 2,100 indicates laminar flow; Re ≥ 4,000 indicates turbulent flow.',
+  'explain.flow_regime': 'Flow regime',
+
+  // Section 5: Friction factor
+  'explain.s5_title': 'Friction Factor (Churchill Equation)',
+  'explain.s5_desc': 'The Churchill (1977) equation is an explicit formula covering laminar, transitional, and turbulent flow regimes in a single expression. It requires no iteration and provides accuracy comparable to the Colebrook-White equation. The relative roughness ε/D is a key parameter.',
+
+  // Section 6: Pipe loss
+  'explain.s6_title': 'Straight Pipe Loss (Darcy-Weisbach)',
+  'explain.s6_desc': 'The Darcy-Weisbach equation is the fundamental formula for calculating pressure loss in straight pipe sections. It uses the friction factor f, pipe length L, inner diameter D, fluid density ρ, and velocity V. Head loss h is converted via ΔP/(ρg).',
+
+  // Section 7: Fitting loss
+  'explain.s7_title': 'Fitting & Valve Loss',
+  'explain.s7_desc': 'Minor losses through elbows, tees, valves, etc. are expressed using a loss coefficient K. The K value calculation method depends on the fitting type: Darby 3-K method (Reynolds and diameter dependent), fixed K (entrances/exits), or Cv conversion (valves).',
+
+  // Section 8: Elevation
+  'explain.s8_title': 'Elevation Pressure Change',
+  'explain.s8_desc': 'The elevation change Δz in the piping converts to a pressure change due to the change in potential energy. A positive value indicates upward flow (pressure increase).',
+
+  // Section 9: Total
+  'explain.s9_title': 'Total Pressure Drop',
+  'explain.s9_desc': 'The total system pressure drop is the sum of three components: straight pipe friction loss, fitting losses, and elevation change. Head loss h is converted via ΔP/(ρg).',
+
+  // Section 10: Pump
+  'explain.s10_title': 'Pump Selection',
+  'explain.s10_desc': 'Calculates the Total Dynamic Head (TDH), Available NPSH (NPSHa), system resistance curve, specific speed Ns, and estimated power P required for pump selection.',
+  'explain.s10_no_data': 'Please run the pump calculation and click "View Pump Explanation".',
+  'explain.pump_type': 'Recommended pump type',
+
+  // Variable descriptions
+  'explain.var_density': 'Fluid density',
+  'explain.var_density_desc': 'Mass per unit volume of the fluid. Varies with temperature.',
+  'explain.var_density_ref': 'Determined in Step 1',
+  'explain.var_viscosity': 'Viscosity',
+  'explain.var_viscosity_desc': 'Measure of fluid resistance to flow. Generally decreases with temperature.',
+  'explain.var_viscosity_ref': 'Determined in Step 1',
+  'explain.var_temperature': 'Fluid temperature',
+  'explain.var_temperature_desc': 'Temperature of the fluid. Used to determine properties.',
+  'explain.var_diameter': 'Inner diameter',
+  'explain.var_diameter_desc': 'Actual inner diameter determined by pipe standard and schedule.',
+  'explain.var_diameter_ref': 'From Step 2',
+  'explain.var_area': 'Flow cross-section area',
+  'explain.var_area_desc': 'Circular cross-sectional area calculated from inner diameter.',
+  'explain.var_area_ref': 'Calculated in Step 2',
+  'explain.var_roughness': 'Pipe roughness',
+  'explain.var_flowrate': 'Volumetric flow rate',
+  'explain.var_flowrate_desc': 'Volume of fluid per unit time. Primary design input.',
+  'explain.var_velocity': 'Mean flow velocity',
+  'explain.var_velocity_desc': 'Cross-sectional average fluid velocity. Calculated as Q/A.',
+  'explain.var_velocity_ref': 'Calculated in Step 3',
+  'explain.var_reynolds': 'Reynolds number',
+  'explain.var_reynolds_ref': 'Calculated in Step 4',
+  'explain.var_friction_factor': 'Darcy friction factor',
+  'explain.var_friction_factor_desc': 'Dimensionless number representing the degree of pressure loss due to wall friction.',
+  'explain.var_friction_factor_ref': 'Calculated in Step 5',
+  'explain.var_length': 'Pipe length',
+  'explain.var_length_desc': 'Length of the straight pipe section.',
+  'explain.var_gravity': 'Gravitational acceleration',
+  'explain.var_gravity_desc': 'Standard gravity (9.80665 m/s²)',
+  'explain.var_elevation': 'Elevation change',
+  'explain.var_elevation_desc': 'Height change from pipe inlet to outlet. Positive = upward.',
+  'explain.var_k1_desc': 'Reynolds-dependent coefficient (contribution at low Re)',
+  'explain.var_ki_desc': 'Irreversible loss coefficient (main loss contribution)',
+  'explain.var_kd_desc': 'Diameter-dependent coefficient (scale effect)',
+  'explain.var_d_inch': 'Inner diameter (inches)',
+  'explain.var_d_inch_desc': 'Darby 3-K method uses inch units',
+  'explain.var_cv_desc': 'Flow coefficient (US GPM @ 1 psi, SG=1)',
+  'explain.var_k_fixed': 'Fixed K value',
+  'explain.var_k_fixed_desc': 'Loss coefficient determined by geometry (entrances/exits)',
+  'explain.var_static_head_desc': 'Elevation difference from liquid surface to discharge end',
+  'explain.var_friction_head_desc': 'Total friction loss head for the piping system',
+  'explain.var_atm_desc': 'Standard atmospheric pressure 101.325 kPa',
+  'explain.var_vapor_pressure': 'Vapor pressure',
+  'explain.var_vapor_desc': 'Vapor pressure of fluid at operating temperature. Cavitation criterion.',
+  'explain.var_suction_head_desc': 'Height from liquid surface to pump centerline (positive = pump below surface)',
+  'explain.var_suction_loss_desc': 'Friction head loss in suction piping',
+  'explain.var_speed_desc': 'Pump rotational speed. Determined by frequency and number of poles.',
+  'explain.var_efficiency': 'Estimated efficiency',
+  'explain.var_efficiency_desc': 'Mid-range of typical efficiency for the specific speed classification',
 };
 
 export default en;

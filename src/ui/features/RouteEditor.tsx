@@ -21,6 +21,7 @@ import { calcRoute } from '@application/calcRoute';
 import { RouteViews } from '../views/RouteViews';
 import { RouteProjectData } from '@infrastructure/persistence/projectFile';
 import type { PumpSelectionInput } from './PumpChart';
+import type { ExplanationSnapshot } from './explanation/types';
 import { useUndoableNodes } from '../hooks/useUndoableNodes';
 
 // ── Node form state ──
@@ -61,10 +62,11 @@ export interface RouteEditorHandle {
 export interface RouteEditorProps {
   initialData?: RouteProjectData;
   onSendToPump?: (input: PumpSelectionInput) => void;
+  onSendToExplanation?: (snapshot: ExplanationSnapshot) => void;
 }
 
 export const RouteEditor = forwardRef<RouteEditorHandle, RouteEditorProps>(
-  function RouteEditor({ initialData, onSendToPump }, ref) {
+  function RouteEditor({ initialData, onSendToPump, onSendToExplanation }, ref) {
   const { t, locale } = useTranslation();
   const isDesktop = useIsDesktop();
 
@@ -113,6 +115,7 @@ export const RouteEditor = forwardRef<RouteEditorHandle, RouteEditorProps>(
   // Result
   const [result, setResult] = useState<SystemResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [lastCalcSnapshot, setLastCalcSnapshot] = useState<ExplanationSnapshot | null>(null);
 
   useImperativeHandle(ref, () => ({
     getProjectData(): RouteProjectData {
@@ -283,6 +286,19 @@ export const RouteEditor = forwardRef<RouteEditorHandle, RouteEditorProps>(
         waterData, darby3kData, entranceExitData
       );
       setResult(res);
+
+      // Snapshot from first segment for explanation tab
+      if (res.segmentResults.length > 0) {
+        const firstSeg = res.segmentResults[0];
+        const totalLength = res.segmentResults.reduce((s, r) => s + (r.head_friction_m > 0 ? 1 : 0), 0);
+        setLastCalcSnapshot({
+          fluid, pipe, material, flowRate_m3h: flowRate,
+          length_m: totalLength > 0 ? res.head_friction_total_m / res.segmentResults.length : 10,
+          elevation_m: res.head_elevation_total_m,
+          fittings: [],
+          result: firstSeg,
+        });
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     }
@@ -513,6 +529,19 @@ export const RouteEditor = forwardRef<RouteEditorHandle, RouteEditorProps>(
           }}
         >
           {t('action.send_to_pump')}
+        </button>
+      )}
+
+      {result && lastCalcSnapshot && onSendToExplanation && (
+        <button
+          onClick={() => onSendToExplanation(lastCalcSnapshot)}
+          style={{
+            marginTop: '8px', padding: '8px 20px', fontSize: '0.9em',
+            background: '#fff', color: '#2e7d32', border: '2px solid #2e7d32',
+            borderRadius: '6px', cursor: 'pointer', width: '100%',
+          }}
+        >
+          {t('action.send_to_explanation')}
         </button>
       )}
     </>

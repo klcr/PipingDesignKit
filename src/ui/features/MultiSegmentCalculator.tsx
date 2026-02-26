@@ -19,6 +19,7 @@ import { calcMultiSegment } from '@application/calcMultiSegment';
 import { SegmentDefinition } from '@application/types';
 import { MultiSegmentProjectData } from '@infrastructure/persistence/projectFile';
 import type { PumpSelectionInput } from './PumpChart';
+import type { ExplanationSnapshot } from './explanation/types';
 
 interface FittingRow {
   fittingId: string;
@@ -73,10 +74,11 @@ export interface MultiSegmentCalculatorHandle {
 export interface MultiSegmentCalculatorProps {
   initialData?: MultiSegmentProjectData;
   onSendToPump?: (input: PumpSelectionInput) => void;
+  onSendToExplanation?: (snapshot: ExplanationSnapshot) => void;
 }
 
 export const MultiSegmentCalculator = forwardRef<MultiSegmentCalculatorHandle, MultiSegmentCalculatorProps>(
-  function MultiSegmentCalculator({ initialData, onSendToPump }, ref) {
+  function MultiSegmentCalculator({ initialData, onSendToPump, onSendToExplanation }, ref) {
   const { t, locale } = useTranslation();
   const isDesktop = useIsDesktop();
 
@@ -100,6 +102,7 @@ export const MultiSegmentCalculator = forwardRef<MultiSegmentCalculatorHandle, M
   // Result
   const [result, setResult] = useState<SystemResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [lastCalcSnapshot, setLastCalcSnapshot] = useState<ExplanationSnapshot | null>(null);
 
   useImperativeHandle(ref, () => ({
     getProjectData(): MultiSegmentProjectData {
@@ -196,6 +199,16 @@ export const MultiSegmentCalculator = forwardRef<MultiSegmentCalculatorHandle, M
         waterData, darby3kData, entranceExitData
       );
       setResult(res);
+
+      // Snapshot from first segment for explanation tab
+      if (segmentDefs.length > 0 && res.segmentResults.length > 0) {
+        const seg = segmentDefs[0];
+        setLastCalcSnapshot({
+          fluid, pipe: seg.pipe, material: seg.material,
+          flowRate_m3h: flowRate, length_m: seg.length_m, elevation_m: seg.elevation_m,
+          fittings: seg.fittings, result: res.segmentResults[0],
+        });
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     }
@@ -310,6 +323,19 @@ export const MultiSegmentCalculator = forwardRef<MultiSegmentCalculatorHandle, M
           }}
         >
           {t('action.send_to_pump')}
+        </button>
+      )}
+
+      {result && lastCalcSnapshot && onSendToExplanation && (
+        <button
+          onClick={() => onSendToExplanation(lastCalcSnapshot)}
+          style={{
+            marginTop: '8px', padding: '8px 20px', fontSize: '0.9em',
+            background: '#fff', color: '#2e7d32', border: '2px solid #2e7d32',
+            borderRadius: '6px', cursor: 'pointer', width: '100%',
+          }}
+        >
+          {t('action.send_to_explanation')}
         </button>
       )}
     </>

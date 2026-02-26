@@ -8,6 +8,7 @@ import { getFluidProperties } from '@domain/fluid/fluidProperties';
 import { calcResistanceCurve, findOperatingPoint, calcNPSHa, ResistanceCurvePoint, OperatingPoint } from '@domain/system/pumpSelection';
 import { calcPumpSuggestion, PumpSuggestion } from '@domain/system/pumpRequirements';
 import { PumpCurveData, samplePumpData, getAvailableFluids, getFluidData, getFluidTempRange, FluidId, pumpTypeClassifications } from '@infrastructure/dataLoader';
+import type { PumpExplanationSnapshot } from './explanation/types';
 
 // ── 圧損計算からの受け渡しデータ型 ──
 
@@ -31,9 +32,10 @@ const SPEED_PRESETS = [
 interface PumpChartProps {
   initialInput?: PumpSelectionInput | null;
   onInputConsumed?: () => void;
+  onSendPumpToExplanation?: (snapshot: PumpExplanationSnapshot) => void;
 }
 
-export function PumpChart({ initialInput, onInputConsumed }: PumpChartProps) {
+export function PumpChart({ initialInput, onInputConsumed, onSendPumpToExplanation }: PumpChartProps) {
   const { t, locale } = useTranslation();
   const isDesktop = useIsDesktop();
 
@@ -318,6 +320,30 @@ export function PumpChart({ initialInput, onInputConsumed }: PumpChartProps) {
           <div style={{ marginTop: '12px', fontSize: '0.8em', color: '#888' }}>
             {t('pump.suggestion_note')}
           </div>
+
+          {onSendPumpToExplanation && fluidProps && (
+            <button
+              onClick={() => onSendPumpToExplanation({
+                designFlow_m3h: designFlow,
+                staticHead_m: staticHead,
+                frictionHead_m: frictionHead,
+                density: fluidProps.density,
+                vaporPressure_kPa: fluidProps.pressure,
+                atmosphericPressure_kPa: atmPressure,
+                suctionStaticHead_m: suctionStaticHead,
+                suctionFrictionLoss_m: suctionFrictionLoss,
+                speed_rpm: assumedSpeed,
+                suggestion: pumpSuggestion,
+              })}
+              style={{
+                marginTop: '12px', padding: '8px 20px', fontSize: '0.9em',
+                background: '#fff', color: '#2e7d32', border: '2px solid #2e7d32',
+                borderRadius: '6px', cursor: 'pointer', width: '100%',
+              }}
+            >
+              {t('action.send_pump_to_explanation')}
+            </button>
+          )}
         </>
       ) : (
         <div style={{ color: '#999', fontSize: '0.85em' }}>
