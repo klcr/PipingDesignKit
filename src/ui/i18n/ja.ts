@@ -213,6 +213,111 @@ const ja: Record<string, string> = {
   'pump.type.mixed_flow': '斜流ポンプ',
   'pump.type.axial': '軸流ポンプ',
   'pump.unit.kw': 'kW',
+
+  // Explanation tab
+  'tab.explain': '計算解説',
+  'action.send_to_explanation': '計算解説を見る',
+  'action.send_pump_to_explanation': 'ポンプ解説を見る',
+  'explain.title': '計算過程の解説',
+  'explain.subtitle': '現在の入力値に対して、どのような計算が行われているかをステップごとに解説します。',
+  'explain.no_data': 'まだ計算データがありません',
+  'explain.no_data_hint': 'いずれかの計算タブで計算を実行し、「計算解説を見る」ボタンを押してください。',
+
+  // Section 1: Fluid
+  'explain.s1_title': '流体物性',
+  'explain.s1_desc': '圧損計算の出発点として、流体の密度ρと粘度μを決定します。これらの値は温度・流体種類によって変化し、データテーブルからの補間または物性式により算出されます。',
+
+  // Section 2: Geometry
+  'explain.s2_title': '配管ジオメトリ',
+  'explain.s2_desc': '配管の内径Dから流路断面積Aを計算します。内径は配管規格（NPS/DN）とスケジュールから決まります。',
+
+  // Section 3: Velocity
+  'explain.s3_title': '流速',
+  'explain.s3_desc': '体積流量Qを流路断面積Aで除して、管内平均流速Vを求めます。一般的な配管設計では流速 1〜3 m/s が目安とされます。',
+  'explain.velocity_high': '流速が 3 m/s を超えています。エロージョンや騒音の原因となる場合があります。',
+  'explain.velocity_low': '流速が 0.5 m/s 未満です。スラリーの沈降やスケール付着の原因となる場合があります。',
+
+  // Section 4: Reynolds
+  'explain.s4_title': 'レイノルズ数',
+  'explain.s4_desc': 'レイノルズ数Reは流体の慣性力と粘性力の比を表す無次元数で、流動状態（層流・遷移域・乱流）の判定に用います。Re < 2,100 で層流、Re ≥ 4,000 で乱流と判定されます。',
+  'explain.flow_regime': '流動状態',
+
+  // Section 5: Friction factor
+  'explain.s5_title': '摩擦係数（Churchill式）',
+  'explain.s5_desc': 'Churchill (1977) の式は、層流・遷移域・乱流のすべてをカバーする単一の陽的式です。反復計算が不要で、Colebrook-White式と同等の精度を持ちます。管の相対粗度ε/Dが重要なパラメータとなります。',
+
+  // Section 6: Pipe loss
+  'explain.s6_title': '直管圧損（Darcy-Weisbach式）',
+  'explain.s6_desc': 'Darcy-Weisbach式は直管部の圧力損失を計算する基本式です。摩擦係数f、管長L、内径D、流体密度ρ、流速Vから圧力損失を求めます。水頭損失hはΔP/(ρg)で換算されます。',
+
+  // Section 7: Fitting loss
+  'explain.s7_title': '継手・バルブ圧損',
+  'explain.s7_desc': 'エルボ・ティー・バルブなどの局部損失を損失係数Kで表現します。K値の算出方法は継手の種類により、Darby 3-K法（レイノルズ数と口径に依存）、固定K値法（入口・出口）、Cv変換法（バルブ）の3種類があります。',
+
+  // Section 8: Elevation
+  'explain.s8_title': '高低差による圧力変化',
+  'explain.s8_desc': '配管の高低差Δzによる位置エネルギーの変化を圧力に換算します。正の値は上向き（圧力増加方向）を意味します。',
+
+  // Section 9: Total
+  'explain.s9_title': '合計圧損',
+  'explain.s9_desc': '直管圧損・継手圧損・高低差圧損の3成分を合算して、系統全体の圧力損失を求めます。水頭損失hはΔP/(ρg)で換算されます。',
+
+  // Section 10: Pump
+  'explain.s10_title': 'ポンプ選定',
+  'explain.s10_desc': 'ポンプ選定に必要な全揚程TDH、NPSHa（有効NPSH）、配管抵抗曲線、比速度Ns、概算動力Pを求めます。',
+  'explain.s10_no_data': 'ポンプ選定タブで計算後、「ポンプ解説を見る」ボタンを押してください。',
+  'explain.pump_type': '推奨ポンプ形式',
+
+  // Variable descriptions
+  'explain.var_density': '流体密度',
+  'explain.var_density_desc': '流体の単位体積あたりの質量。温度により変化する。',
+  'explain.var_density_ref': 'Step 1 で決定',
+  'explain.var_viscosity': '粘度',
+  'explain.var_viscosity_desc': '流体の粘性を表す物性値。温度上昇に伴い一般に低下する。',
+  'explain.var_viscosity_ref': 'Step 1 で決定',
+  'explain.var_temperature': '流体温度',
+  'explain.var_temperature_desc': '流体の温度。物性値の決定に使用。',
+  'explain.var_diameter': '管内径',
+  'explain.var_diameter_desc': '配管規格・スケジュールから決まる実内径。',
+  'explain.var_diameter_ref': 'Step 2 で決定',
+  'explain.var_area': '流路断面積',
+  'explain.var_area_desc': '管内径から計算される円形断面の面積。',
+  'explain.var_area_ref': 'Step 2 で計算済み',
+  'explain.var_roughness': '管内面粗度',
+  'explain.var_flowrate': '体積流量',
+  'explain.var_flowrate_desc': '単位時間あたりの流体体積。配管設計の基本入力値。',
+  'explain.var_velocity': '管内平均流速',
+  'explain.var_velocity_desc': '断面平均の流体速度。Q/Aで計算。',
+  'explain.var_velocity_ref': 'Step 3 で計算済み',
+  'explain.var_reynolds': 'レイノルズ数',
+  'explain.var_reynolds_ref': 'Step 4 で計算済み',
+  'explain.var_friction_factor': 'Darcy摩擦係数',
+  'explain.var_friction_factor_desc': '管壁摩擦による圧力損失の程度を表す無次元数。',
+  'explain.var_friction_factor_ref': 'Step 5 で計算済み',
+  'explain.var_length': '管長',
+  'explain.var_length_desc': '直管区間の長さ。',
+  'explain.var_gravity': '重力加速度',
+  'explain.var_gravity_desc': '標準重力加速度 (9.80665 m/s²)',
+  'explain.var_elevation': '高低差',
+  'explain.var_elevation_desc': '配管入口から出口への高さの変化。正=上向き。',
+  'explain.var_k1_desc': 'レイノルズ数依存係数（低Re域の寄与）',
+  'explain.var_ki_desc': '不可逆損失係数（主要な損失寄与）',
+  'explain.var_kd_desc': '口径依存係数（スケール効果）',
+  'explain.var_d_inch': '管内径（インチ）',
+  'explain.var_d_inch_desc': 'Darby 3-K法はインチ単位を使用',
+  'explain.var_cv_desc': '流量係数（US GPM @ 1 psi, SG=1）',
+  'explain.var_k_fixed': '固定K値',
+  'explain.var_k_fixed_desc': '入口・出口など、形状で決まる固定の損失係数',
+  'explain.var_static_head_desc': '液面からポンプ吐出側終端までの高低差',
+  'explain.var_friction_head_desc': '配管系統全体の摩擦損失の合計水頭',
+  'explain.var_atm_desc': '標準大気圧 101.325 kPa',
+  'explain.var_vapor_pressure': '蒸気圧',
+  'explain.var_vapor_desc': '流体の温度における蒸気圧。キャビテーション発生の判定基準。',
+  'explain.var_suction_head_desc': 'ポンプ吸込み側の液面からポンプ中心までの高低差（正=ポンプ下方に液面）',
+  'explain.var_suction_loss_desc': '吸込み側配管の摩擦損失水頭',
+  'explain.var_speed_desc': 'ポンプの回転数。50Hz/60Hz の極数で決まる。',
+  'explain.var_efficiency': '推定効率',
+  'explain.var_efficiency_desc': '比速度から推定される典型効率の中央値',
 };
 
 export default ja;

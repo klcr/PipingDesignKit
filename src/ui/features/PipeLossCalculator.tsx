@@ -18,6 +18,7 @@ import { getAvailableMaterials, resolveMaterial } from '@infrastructure/material
 import { calcSingleSegment } from '@application/calcSingleSegment';
 import { SingleSegmentProjectData } from '@infrastructure/persistence/projectFile';
 import type { PumpSelectionInput } from './PumpChart';
+import type { ExplanationSnapshot } from './explanation/types';
 
 interface FittingRow {
   fittingId: string;
@@ -31,10 +32,11 @@ export interface PipeLossCalculatorHandle {
 export interface PipeLossCalculatorProps {
   initialData?: SingleSegmentProjectData;
   onSendToPump?: (input: PumpSelectionInput) => void;
+  onSendToExplanation?: (snapshot: ExplanationSnapshot) => void;
 }
 
 export const PipeLossCalculator = forwardRef<PipeLossCalculatorHandle, PipeLossCalculatorProps>(
-  function PipeLossCalculator({ initialData, onSendToPump }, ref) {
+  function PipeLossCalculator({ initialData, onSendToPump, onSendToExplanation }, ref) {
   const { t, locale } = useTranslation();
 
   // Fluid
@@ -71,6 +73,8 @@ export const PipeLossCalculator = forwardRef<PipeLossCalculatorHandle, PipeLossC
   // Result
   const [result, setResult] = useState<SegmentResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Last calculated snapshot data (for explanation tab)
+  const [lastCalcSnapshot, setLastCalcSnapshot] = useState<ExplanationSnapshot | null>(null);
 
   useImperativeHandle(ref, () => ({
     getProjectData(): SingleSegmentProjectData {
@@ -136,6 +140,10 @@ export const PipeLossCalculator = forwardRef<PipeLossCalculatorHandle, PipeLossC
         waterData, darby3kData, entranceExitData
       );
       setResult(res);
+      setLastCalcSnapshot({
+        fluid, pipe: pipeSpec, material, flowRate_m3h: flowRate,
+        length_m: pipeLength, elevation_m: elevation, fittings, result: res,
+      });
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     }
@@ -306,6 +314,19 @@ export const PipeLossCalculator = forwardRef<PipeLossCalculatorHandle, PipeLossC
               }}
             >
               {t('action.send_to_pump')}
+            </button>
+          )}
+
+          {result && lastCalcSnapshot && onSendToExplanation && (
+            <button
+              onClick={() => onSendToExplanation(lastCalcSnapshot)}
+              style={{
+                marginTop: '8px', padding: '8px 20px', fontSize: '0.9em',
+                background: '#fff', color: '#2e7d32', border: '2px solid #2e7d32',
+                borderRadius: '6px', cursor: 'pointer', width: '100%',
+              }}
+            >
+              {t('action.send_to_explanation')}
             </button>
           )}
         </div>

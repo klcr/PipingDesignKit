@@ -6,6 +6,8 @@ import { PipeLossCalculator, PipeLossCalculatorHandle } from './ui/features/Pipe
 import { MultiSegmentCalculator, MultiSegmentCalculatorHandle } from './ui/features/MultiSegmentCalculator';
 import { RouteEditor, RouteEditorHandle } from './ui/features/RouteEditor';
 import { PumpChart, PumpSelectionInput } from './ui/features/PumpChart';
+import { ExplanationTab } from './ui/features/explanation/ExplanationTab';
+import type { ExplanationSnapshot, PumpExplanationSnapshot } from './ui/features/explanation/types';
 import {
   ProjectFile,
   SingleSegmentProjectData,
@@ -20,7 +22,7 @@ import {
   createRouteProject,
 } from './infrastructure/persistence/fileIO';
 
-type TabKey = 'single' | 'multi' | 'route' | 'pump';
+type TabKey = 'single' | 'multi' | 'route' | 'pump' | 'explain';
 
 const containerMaxWidth: Record<string, string> = {
   mobile: '100%',
@@ -52,9 +54,23 @@ function AppContent() {
   // Pump selection input from pressure loss calculation
   const [pumpInput, setPumpInput] = useState<PumpSelectionInput | null>(null);
 
+  // Explanation tab snapshots
+  const [explanationSnapshot, setExplanationSnapshot] = useState<ExplanationSnapshot | null>(null);
+  const [pumpExplanation, setPumpExplanation] = useState<PumpExplanationSnapshot | null>(null);
+
   const handleSendToPump = useCallback((input: PumpSelectionInput) => {
     setPumpInput(input);
     setActiveTab('pump');
+  }, []);
+
+  const handleSendToExplanation = useCallback((snapshot: ExplanationSnapshot) => {
+    setExplanationSnapshot(snapshot);
+    setActiveTab('explain');
+  }, []);
+
+  const handleSendPumpToExplanation = useCallback((snapshot: PumpExplanationSnapshot) => {
+    setPumpExplanation(snapshot);
+    setActiveTab('explain');
   }, []);
 
   const handleExport = () => {
@@ -143,12 +159,14 @@ function AppContent() {
         <TabButton label={t('tab.multi')} active={activeTab === 'multi'} onClick={() => setActiveTab('multi')} compact={isMobile} />
         <TabButton label={t('tab.route')} active={activeTab === 'route'} onClick={() => setActiveTab('route')} compact={isMobile} />
         <TabButton label={t('tab.pump')} active={activeTab === 'pump'} onClick={() => setActiveTab('pump')} compact={isMobile} />
+        <TabButton label={t('tab.explain')} active={activeTab === 'explain'} onClick={() => setActiveTab('explain')} compact={isMobile} />
       </div>
 
-      {activeTab === 'single' && <PipeLossCalculator key={`single-${mountKey}`} ref={singleRef} initialData={singleInitial} onSendToPump={handleSendToPump} />}
-      {activeTab === 'multi' && <MultiSegmentCalculator key={`multi-${mountKey}`} ref={multiRef} initialData={multiInitial} onSendToPump={handleSendToPump} />}
-      {activeTab === 'route' && <RouteEditor key={`route-${mountKey}`} ref={routeRef} initialData={routeInitial} onSendToPump={handleSendToPump} />}
-      {activeTab === 'pump' && <PumpChart initialInput={pumpInput} onInputConsumed={() => setPumpInput(null)} />}
+      {activeTab === 'single' && <PipeLossCalculator key={`single-${mountKey}`} ref={singleRef} initialData={singleInitial} onSendToPump={handleSendToPump} onSendToExplanation={handleSendToExplanation} />}
+      {activeTab === 'multi' && <MultiSegmentCalculator key={`multi-${mountKey}`} ref={multiRef} initialData={multiInitial} onSendToPump={handleSendToPump} onSendToExplanation={handleSendToExplanation} />}
+      {activeTab === 'route' && <RouteEditor key={`route-${mountKey}`} ref={routeRef} initialData={routeInitial} onSendToPump={handleSendToPump} onSendToExplanation={handleSendToExplanation} />}
+      {activeTab === 'pump' && <PumpChart initialInput={pumpInput} onInputConsumed={() => setPumpInput(null)} onSendPumpToExplanation={handleSendPumpToExplanation} />}
+      {activeTab === 'explain' && <ExplanationTab snapshot={explanationSnapshot} pumpSnapshot={pumpExplanation} />}
     </div>
   );
 }
