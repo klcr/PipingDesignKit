@@ -288,206 +288,210 @@ export const RouteEditor = forwardRef<RouteEditorHandle, RouteEditorProps>(
     }
   };
 
-  return (
-    <div>
-      {/* System-level inputs */}
-      <Section title={t('system.flow_conditions')}>
-        <Field label={t('fluid.type')}>
-          <select value={fluidId} onChange={e => {
-              const newId = e.target.value as FluidId;
-              setFluidId(newId);
-              const newEntry = getFluidEntry(newId);
-              if (newEntry.kind === 'solution') {
-                setConcentration((newEntry as SolutionFluidEntry).defaultConcentration);
-              }
-            }} style={inputStyle}>
-            {fluids.map(f => (
-              <option key={f.id} value={f.id}>{localizedName(locale, f.name, f.name_ja)}</option>
-            ))}
-          </select>
-        </Field>
-        <Field label={t('fluid.temperature')}>
-          <input type="number" value={temperature} onChange={e => setTemperature(Number(e.target.value))}
-            min={tempRange.min} max={tempRange.max} style={inputStyle} /> {t('unit.celsius')}
+  // ── Shared input sections ──
+
+  const flowConditionsSection = (
+    <Section title={t('system.flow_conditions')}>
+      <Field label={t('fluid.type')}>
+        <select value={fluidId} onChange={e => {
+            const newId = e.target.value as FluidId;
+            setFluidId(newId);
+            const newEntry = getFluidEntry(newId);
+            if (newEntry.kind === 'solution') {
+              setConcentration((newEntry as SolutionFluidEntry).defaultConcentration);
+            }
+          }} style={inputStyle}>
+          {fluids.map(f => (
+            <option key={f.id} value={f.id}>{localizedName(locale, f.name, f.name_ja)}</option>
+          ))}
+        </select>
+      </Field>
+      <Field label={t('fluid.temperature')}>
+        <input type="number" value={temperature} onChange={e => setTemperature(Number(e.target.value))}
+          min={tempRange.min} max={tempRange.max} style={inputStyle} /> {t('unit.celsius')}
+        <span style={{ fontSize: '0.8em', color: '#888', marginLeft: '8px' }}>
+          ({tempRange.min}~{tempRange.max}{t('unit.celsius')})
+        </span>
+      </Field>
+      {solutionEntry && (
+        <Field label={`${t('fluid.concentration')} [${solutionEntry.concentrationUnit}]`}>
+          <input type="number" value={concentration} onChange={e => setConcentration(Number(e.target.value))}
+            min={solutionEntry.concentrationRange.min}
+            max={solutionEntry.concentrationRange.max}
+            step={1} style={inputStyle} /> {solutionEntry.concentrationUnit}
           <span style={{ fontSize: '0.8em', color: '#888', marginLeft: '8px' }}>
-            ({tempRange.min}~{tempRange.max}{t('unit.celsius')})
+            ({solutionEntry.concentrationRange.min}~{solutionEntry.concentrationRange.max})
           </span>
         </Field>
-        {solutionEntry && (
-          <Field label={`${t('fluid.concentration')} [${solutionEntry.concentrationUnit}]`}>
-            <input type="number" value={concentration} onChange={e => setConcentration(Number(e.target.value))}
-              min={solutionEntry.concentrationRange.min}
-              max={solutionEntry.concentrationRange.max}
-              step={1} style={inputStyle} /> {solutionEntry.concentrationUnit}
-            <span style={{ fontSize: '0.8em', color: '#888', marginLeft: '8px' }}>
-              ({solutionEntry.concentrationRange.min}~{solutionEntry.concentrationRange.max})
-            </span>
-          </Field>
-        )}
-        <Field label={t('flow.rate')}>
-          <input type="number" value={flowRate} onChange={e => setFlowRate(Number(e.target.value))}
-            min={0} step={0.1} style={inputStyle} /> {t('unit.m3h')}
+      )}
+      <Field label={t('flow.rate')}>
+        <input type="number" value={flowRate} onChange={e => setFlowRate(Number(e.target.value))}
+          min={0} step={0.1} style={inputStyle} /> {t('unit.m3h')}
+      </Field>
+    </Section>
+  );
+
+  const pipeSettingsSection = (
+    <Section title={t('route.pipe_settings')}>
+      <Field label={t('pipe.standard')}>
+        <select value={pipeStandard} onChange={e => { setPipeStandard(e.target.value as PipeStandardKey); setNominalSize('2'); }} style={inputStyle}>
+          <option value="ansi">{t('pipe.standard.ansi')}</option>
+          <option value="jis-sgp">{t('pipe.standard.jis_sgp')}</option>
+        </select>
+      </Field>
+      <Field label={t('pipe.nominal_size')}>
+        <select value={nominalSize} onChange={e => setNominalSize(e.target.value)} style={inputStyle}>
+          {pipeSizes.map(s => (
+            <option key={s.nps} value={s.nps}>{s.nps} ({s.dn}A)</option>
+          ))}
+        </select>
+      </Field>
+      {pipeStandard === 'ansi' && (
+        <Field label={t('pipe.schedule')}>
+          <select value={schedule} onChange={e => setSchedule(e.target.value)} style={inputStyle}>
+            {schedules.map(s => <option key={s} value={s}>Sch {s}</option>)}
+          </select>
         </Field>
-      </Section>
-
-      {/* Pipe + Elbow settings: side-by-side on desktop */}
-      <div style={isDesktop ? { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' } : undefined}>
-        {/* Pipe specification (route-wide) */}
-        <Section title={t('route.pipe_settings')}>
-          <Field label={t('pipe.standard')}>
-            <select value={pipeStandard} onChange={e => { setPipeStandard(e.target.value as PipeStandardKey); setNominalSize('2'); }} style={inputStyle}>
-              <option value="ansi">{t('pipe.standard.ansi')}</option>
-              <option value="jis-sgp">{t('pipe.standard.jis_sgp')}</option>
-            </select>
-          </Field>
-          <Field label={t('pipe.nominal_size')}>
-            <select value={nominalSize} onChange={e => setNominalSize(e.target.value)} style={inputStyle}>
-              {pipeSizes.map(s => (
-                <option key={s.nps} value={s.nps}>{s.nps} ({s.dn}A)</option>
-              ))}
-            </select>
-          </Field>
-          {pipeStandard === 'ansi' && (
-            <Field label={t('pipe.schedule')}>
-              <select value={schedule} onChange={e => setSchedule(e.target.value)} style={inputStyle}>
-                {schedules.map(s => <option key={s} value={s}>Sch {s}</option>)}
-              </select>
-            </Field>
-          )}
-          <Field label={t('pipe.material')}>
-            <select value={materialId} onChange={e => setMaterialId(e.target.value)} style={inputStyle}>
-              {materials.map(m => (
-                <option key={m.id} value={m.id}>{localizedName(locale, m.name, m.name_ja)} ({'\u03B5'}={m.roughness_mm}mm)</option>
-              ))}
-            </select>
-          </Field>
-          {pipeSpec && (
-            <div style={{ fontSize: '0.85em', color: '#555', marginTop: '2px' }}>
-              {t('pipe.inner_diameter')}: {pipeSpec.id_mm.toFixed(2)} {t('unit.mm')}
-            </div>
-          )}
-        </Section>
-
-        {/* Elbow settings */}
-        <Section title={t('route.elbow_settings')}>
-          <Field label={t('route.elbow_connection')}>
-            <select value={elbowConnection} onChange={e => setElbowConnection(e.target.value as ElbowConnectionType)} style={inputStyle}>
-              <option value="welded">{t('route.elbow_welded')}</option>
-              <option value="threaded">{t('route.elbow_threaded')}</option>
-            </select>
-          </Field>
-          <Field label={t('route.elbow_90_type')}>
-            <select value={use90LR ? 'lr' : 'std'} onChange={e => setUse90LR(e.target.value === 'lr')} style={inputStyle}>
-              <option value="lr">{t('route.elbow_lr')}</option>
-              <option value="std">{t('route.elbow_std')}</option>
-            </select>
-          </Field>
-        </Section>
-      </div>
-
-      {/* Node table + 3D views: side-by-side on desktop */}
-      <div style={isDesktop ? { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', alignItems: 'start' } : undefined}>
-        {/* Node coordinate table */}
-        <Section title={t('route.node_table')}>
-          <div className="node-table-scroll">
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9em' }}>
-              <thead>
-                <tr style={{ borderBottom: '2px solid #ccc' }}>
-                  <th style={thStyle}>{t('route.node_id')}</th>
-                  <th style={thStyle}>X (m)</th>
-                  <th style={thStyle}>Y (m)</th>
-                  <th style={thStyle}>Z (m)</th>
-                  <th style={thStyle}>{t('route.additional_fittings')}</th>
-                  <th style={{ ...thStyle, width: '80px' }}></th>
-                </tr>
-              </thead>
-              <tbody>
-                {nodes.map((node, i) => (
-                  <tr key={node.id} style={{ borderBottom: '1px solid #eee' }}>
-                    <td style={tdStyle}>
-                      <span style={{ fontWeight: 'bold', color: '#555' }}>N{i + 1}</span>
-                    </td>
-                    <td style={tdStyle}>
-                      <input type="number" value={node.x} onChange={e => updateNode(i, { x: Number(e.target.value) })}
-                        step={0.1} style={{ ...inputStyle, width: '80px' }} />
-                    </td>
-                    <td style={tdStyle}>
-                      <input type="number" value={node.y} onChange={e => updateNode(i, { y: Number(e.target.value) })}
-                        step={0.1} style={{ ...inputStyle, width: '80px' }} />
-                    </td>
-                    <td style={tdStyle}>
-                      <input type="number" value={node.z} onChange={e => updateNode(i, { z: Number(e.target.value) })}
-                        step={0.1} style={{ ...inputStyle, width: '80px' }} />
-                    </td>
-                    <td style={tdStyle}>
-                      <NodeFittings
-                        fittingRows={node.fittingRows}
-                        availableFittings={availableFittings}
-                        onChange={fittingRows => updateNode(i, { fittingRows })}
-                        t={t}
-                        locale={locale}
-                      />
-                    </td>
-                    <td style={tdStyle}>
-                      <div style={{ display: 'flex', gap: '2px' }}>
-                        {i > 0 && (
-                          <button onClick={() => moveNode(i, -1)} style={smallBtnStyle} title={t('route.move_up')}>{'\u25B2'}</button>
-                        )}
-                        {i < nodes.length - 1 && (
-                          <button onClick={() => moveNode(i, 1)} style={smallBtnStyle} title={t('route.move_down')}>{'\u25BC'}</button>
-                        )}
-                        {nodes.length > 2 && (
-                          <button onClick={() => removeNode(i)} style={{ ...smallBtnStyle, color: '#c00' }} title={t('route.remove_node')}>{'\u2715'}</button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <button onClick={addNode} style={{
-            marginTop: '8px', padding: '8px 16px', cursor: 'pointer', border: '1px solid #0066cc',
-            borderRadius: '6px', background: '#fff', color: '#0066cc',
-          }}>
-            + {t('route.add_node')}
-          </button>
-        </Section>
-
-        {/* 3-view display */}
-        <div>
-          {analysis && routeNodes.length >= 2 && (
-            <RouteViews
-              nodes={routeNodes}
-              analysis={analysis}
-              onNodeDrag={handleNodeDrag}
-              onDragStart={handleDragStart}
-              onDragEnd={handleDragEnd}
-              hasChanges={hasChanges}
-              onConfirm={handleConfirm}
-              onCancel={handleCancel}
-              canUndo={canUndo}
-              canRedo={canRedo}
-              onUndo={undo}
-              onRedo={redo}
-            />
-          )}
+      )}
+      <Field label={t('pipe.material')}>
+        <select value={materialId} onChange={e => setMaterialId(e.target.value)} style={inputStyle}>
+          {materials.map(m => (
+            <option key={m.id} value={m.id}>{localizedName(locale, m.name, m.name_ja)} ({'\u03B5'}={m.roughness_mm}mm)</option>
+          ))}
+        </select>
+      </Field>
+      {pipeSpec && (
+        <div style={{ fontSize: '0.85em', color: '#555', marginTop: '2px' }}>
+          {t('pipe.inner_diameter')}: {pipeSpec.id_mm.toFixed(2)} {t('unit.mm')}
         </div>
+      )}
+    </Section>
+  );
+
+  const nodeTableSection = (
+    <Section title={t('route.node_table')}>
+      <div className="node-table-scroll">
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9em' }}>
+          <thead>
+            <tr style={{ borderBottom: '2px solid #ccc' }}>
+              <th style={thStyle}>{t('route.node_id')}</th>
+              <th style={thStyle}>X (m)</th>
+              <th style={thStyle}>Y (m)</th>
+              <th style={thStyle}>Z (m)</th>
+              <th style={thStyle}>{t('route.additional_fittings')}</th>
+              <th style={{ ...thStyle, width: '80px' }}></th>
+            </tr>
+          </thead>
+          <tbody>
+            {nodes.map((node, i) => (
+              <tr key={node.id} style={{ borderBottom: '1px solid #eee' }}>
+                <td style={tdStyle}>
+                  <span style={{ fontWeight: 'bold', color: '#555' }}>N{i + 1}</span>
+                </td>
+                <td style={tdStyle}>
+                  <input type="number" value={node.x} onChange={e => updateNode(i, { x: Number(e.target.value) })}
+                    step={0.1} style={{ ...inputStyle, width: '80px' }} />
+                </td>
+                <td style={tdStyle}>
+                  <input type="number" value={node.y} onChange={e => updateNode(i, { y: Number(e.target.value) })}
+                    step={0.1} style={{ ...inputStyle, width: '80px' }} />
+                </td>
+                <td style={tdStyle}>
+                  <input type="number" value={node.z} onChange={e => updateNode(i, { z: Number(e.target.value) })}
+                    step={0.1} style={{ ...inputStyle, width: '80px' }} />
+                </td>
+                <td style={tdStyle}>
+                  <NodeFittings
+                    fittingRows={node.fittingRows}
+                    availableFittings={availableFittings}
+                    onChange={fittingRows => updateNode(i, { fittingRows })}
+                    t={t}
+                    locale={locale}
+                  />
+                </td>
+                <td style={tdStyle}>
+                  <div style={{ display: 'flex', gap: '2px' }}>
+                    {i > 0 && (
+                      <button onClick={() => moveNode(i, -1)} style={smallBtnStyle} title={t('route.move_up')}>{'\u25B2'}</button>
+                    )}
+                    {i < nodes.length - 1 && (
+                      <button onClick={() => moveNode(i, 1)} style={smallBtnStyle} title={t('route.move_down')}>{'\u25BC'}</button>
+                    )}
+                    {nodes.length > 2 && (
+                      <button onClick={() => removeNode(i)} style={{ ...smallBtnStyle, color: '#c00' }} title={t('route.remove_node')}>{'\u2715'}</button>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
-
-      {/* Route analysis preview */}
-      {analysis && <RoutePreview analysis={analysis} t={t} fittingDescMap={fittingDescMap} />}
-
-      {/* Calculate button */}
-      <button onClick={handleCalculate} style={{
-        marginTop: '16px', padding: '10px 24px', fontSize: '1em',
-        background: '#0066cc', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer',
-        width: '100%',
+      <button onClick={addNode} style={{
+        marginTop: '8px', padding: '8px 16px', cursor: 'pointer', border: '1px solid #0066cc',
+        borderRadius: '6px', background: '#fff', color: '#0066cc',
       }}>
-        {t('action.calculate')}
+        + {t('route.add_node')}
       </button>
+    </Section>
+  );
 
-      {/* Results */}
+  const elbowSettingsSection = (
+    <Section title={t('route.elbow_settings')}>
+      <Field label={t('route.elbow_connection')}>
+        <select value={elbowConnection} onChange={e => setElbowConnection(e.target.value as ElbowConnectionType)} style={inputStyle}>
+          <option value="welded">{t('route.elbow_welded')}</option>
+          <option value="threaded">{t('route.elbow_threaded')}</option>
+        </select>
+      </Field>
+      <Field label={t('route.elbow_90_type')}>
+        <select value={use90LR ? 'lr' : 'std'} onChange={e => setUse90LR(e.target.value === 'lr')} style={inputStyle}>
+          <option value="lr">{t('route.elbow_lr')}</option>
+          <option value="std">{t('route.elbow_std')}</option>
+        </select>
+      </Field>
+    </Section>
+  );
+
+  const routeViewsSection = (
+    <div>
+      {analysis && routeNodes.length >= 2 && (
+        <RouteViews
+          nodes={routeNodes}
+          analysis={analysis}
+          onNodeDrag={handleNodeDrag}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+          hasChanges={hasChanges}
+          onConfirm={handleConfirm}
+          onCancel={handleCancel}
+          canUndo={canUndo}
+          canRedo={canRedo}
+          onUndo={undo}
+          onRedo={redo}
+        />
+      )}
+    </div>
+  );
+
+  const routeAnalysisSection = (
+    <>
+      {analysis && <RoutePreview analysis={analysis} t={t} fittingDescMap={fittingDescMap} />}
+    </>
+  );
+
+  const calculateButton = (
+    <button onClick={handleCalculate} style={{
+      marginTop: '16px', padding: '10px 24px', fontSize: '1em',
+      background: '#0066cc', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer',
+      width: '100%',
+    }}>
+      {t('action.calculate')}
+    </button>
+  );
+
+  const resultsSection = (
+    <>
       {error && <div style={{ color: 'red', marginTop: '12px', padding: '8px' }}>{error}</div>}
       {result && <SystemResultsView result={result} t={t} fittingDescMap={fittingDescMap} />}
 
@@ -511,6 +515,47 @@ export const RouteEditor = forwardRef<RouteEditorHandle, RouteEditorProps>(
           {t('action.send_to_pump')}
         </button>
       )}
+    </>
+  );
+
+  // ── Desktop: 3-column layout ──
+  if (isDesktop) {
+    return (
+      <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr 300px', gap: '16px', alignItems: 'start' }}>
+        {/* Left column: inputs */}
+        <div>
+          {flowConditionsSection}
+          {pipeSettingsSection}
+          {nodeTableSection}
+          {elbowSettingsSection}
+        </div>
+
+        {/* Center column: route views (sticky) */}
+        <div style={{ position: 'sticky', top: '20px' }}>
+          {routeViewsSection}
+        </div>
+
+        {/* Right column: analysis & results */}
+        <div>
+          {routeAnalysisSection}
+          {calculateButton}
+          {resultsSection}
+        </div>
+      </div>
+    );
+  }
+
+  // ── Mobile / Tablet: single-column layout ──
+  return (
+    <div>
+      {flowConditionsSection}
+      {pipeSettingsSection}
+      {elbowSettingsSection}
+      {nodeTableSection}
+      {routeViewsSection}
+      {routeAnalysisSection}
+      {calculateButton}
+      {resultsSection}
     </div>
   );
 });

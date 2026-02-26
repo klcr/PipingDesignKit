@@ -139,206 +139,247 @@ export function PumpChart({ initialInput, onInputConsumed }: PumpChartProps) {
     warnings.push(t('pump.warning_npsh'));
   }
 
-  return (
-    <div>
-      {/* Data received banner */}
-      {showDataBanner && (
-        <div style={{
-          padding: '8px 12px', background: '#e8f4fd', border: '1px solid #b3d9f2',
-          borderRadius: '6px', marginBottom: '12px', fontSize: '0.85em',
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        }}>
-          <span>{t('pump.data_received_from')}</span>
-          <button
-            onClick={() => setShowDataBanner(false)}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1em', color: '#666' }}
-          >
-            {'\u00D7'}
-          </button>
-        </div>
+  // ── Shared sections ──
+
+  const dataBanner = showDataBanner ? (
+    <div style={{
+      padding: '8px 12px', background: '#e8f4fd', border: '1px solid #b3d9f2',
+      borderRadius: '6px', marginBottom: '12px', fontSize: '0.85em',
+      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+    }}>
+      <span>{t('pump.data_received_from')}</span>
+      <button
+        onClick={() => setShowDataBanner(false)}
+        style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1em', color: '#666' }}
+      >
+        {'\u00D7'}
+      </button>
+    </div>
+  ) : null;
+
+  const pumpInfoSection = (
+    <Section title={t('pump.title')}>
+      <ResultRow label={t('pump.model')} value={pumpData.model} />
+      <ResultRow label={t('pump.manufacturer')} value={pumpData.manufacturer} />
+      <div style={{ fontSize: '0.85em', color: '#555', marginTop: '4px' }}>
+        {localizedName(locale, pumpData.description, pumpData.description_ja)}
+      </div>
+    </Section>
+  );
+
+  const fluidSection = (
+    <Section title={t('fluid.title')}>
+      <Field label={t('fluid.type')}>
+        <select value={fluidId} onChange={e => setFluidId(e.target.value as FluidId)} style={inputStyle}>
+          {fluids.map(f => (
+            <option key={f.id} value={f.id}>{localizedName(locale, f.name, f.name_ja)}</option>
+          ))}
+        </select>
+      </Field>
+      <Field label={t('fluid.temperature')}>
+        <input type="number" value={temperature} onChange={e => setTemperature(Number(e.target.value))}
+          min={tempRange.min} max={tempRange.max} style={inputStyle} /> {t('unit.celsius')}
+      </Field>
+    </Section>
+  );
+
+  const systemHeadSection = (
+    <Section title={t('pump.system_head')}>
+      <Field label={t('pump.input_flow')}>
+        <input type="number" value={designFlow} onChange={e => setDesignFlow(Number(e.target.value))}
+          min={0} step={0.5} style={inputStyle} /> {t('unit.m3h')}
+      </Field>
+      <Field label={t('pump.static_head')}>
+        <input type="number" value={staticHead} onChange={e => setStaticHead(Number(e.target.value))}
+          step={0.5} style={inputStyle} /> {t('unit.m')}
+      </Field>
+      <Field label={t('pump.friction_head')}>
+        <input type="number" value={frictionHead} onChange={e => setFrictionHead(Number(e.target.value))}
+          min={0} step={0.5} style={inputStyle} /> {t('unit.m')}
+      </Field>
+    </Section>
+  );
+
+  const npshaSection = (
+    <Section title={t('pump.npsha_settings')}>
+      <Field label={t('pump.suction_static_head')}>
+        <input type="number" value={suctionStaticHead} onChange={e => setSuctionStaticHead(Number(e.target.value))}
+          step={0.5} style={inputStyle} /> {t('unit.m')}
+      </Field>
+      <Field label={t('pump.suction_friction_loss')}>
+        <input type="number" value={suctionFrictionLoss} onChange={e => setSuctionFrictionLoss(Number(e.target.value))}
+          min={0} step={0.1} style={inputStyle} /> {t('unit.m')}
+      </Field>
+      <Field label={t('pump.atm_pressure')}>
+        <input type="number" value={atmPressure} onChange={e => setAtmPressure(Number(e.target.value))}
+          step={0.1} style={inputStyle} /> {t('unit.kpa')}
+      </Field>
+    </Section>
+  );
+
+  const operatingPointSection = (
+    <Section title={t('pump.operating_point')}>
+      {operatingPoint ? (
+        <>
+          <ResultRow label={t('pump.operating_flow')} value={`${formatNum(operatingPoint.flow_m3h, 2)} ${t('unit.m3h')}`} />
+          <ResultRow label={t('pump.operating_head')} value={`${formatNum(operatingPoint.head_m, 2)} ${t('unit.m')}`} />
+          <ResultRow label={t('pump.operating_efficiency')} value={`${formatNum(operatingPoint.efficiency_pct, 1)} ${t('unit.pct')}`} />
+          <ResultRow label={t('pump.npshr')} value={`${formatNum(operatingPoint.npshr_m, 2)} ${t('unit.m')}`} />
+          {npsha !== null && (
+            <>
+              <ResultRow label={t('pump.npsha')} value={`${formatNum(npsha, 2)} ${t('unit.m')}`} />
+              <ResultRow label={t('pump.npsh_margin')} value={`${formatNum(npsha - operatingPoint.npshr_m, 2)} ${t('unit.m')}`} />
+            </>
+          )}
+        </>
+      ) : (
+        <div style={{ color: '#c00', fontSize: '0.9em' }}>{t('pump.no_intersection')}</div>
       )}
 
-      {/* Pump info */}
-      <Section title={t('pump.title')}>
-        <ResultRow label={t('pump.model')} value={pumpData.model} />
-        <ResultRow label={t('pump.manufacturer')} value={pumpData.manufacturer} />
-        <div style={{ fontSize: '0.85em', color: '#555', marginTop: '4px' }}>
-          {localizedName(locale, pumpData.description, pumpData.description_ja)}
+      {warnings.length > 0 && (
+        <div style={{ marginTop: '12px' }}>
+          {warnings.map((w, i) => (
+            <div key={i} style={{ color: '#c00', fontSize: '0.85em', padding: '4px 0' }}>
+              {w}
+            </div>
+          ))}
         </div>
-      </Section>
+      )}
+    </Section>
+  );
 
-      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '12px' : '16px' }}>
-        <div>
-          {/* Fluid */}
-          <Section title={t('fluid.title')}>
-            <Field label={t('fluid.type')}>
-              <select value={fluidId} onChange={e => setFluidId(e.target.value as FluidId)} style={inputStyle}>
-                {fluids.map(f => (
-                  <option key={f.id} value={f.id}>{localizedName(locale, f.name, f.name_ja)}</option>
-                ))}
-              </select>
-            </Field>
-            <Field label={t('fluid.temperature')}>
-              <input type="number" value={temperature} onChange={e => setTemperature(Number(e.target.value))}
-                min={tempRange.min} max={tempRange.max} style={inputStyle} /> {t('unit.celsius')}
-            </Field>
-          </Section>
+  const pumpSuggestionSection = (
+    <Section title={t('pump.suggestion_title')}>
+      <Field label={t('pump.assumed_speed')}>
+        <select
+          value={speedMode === 'preset' ? String(presetSpeed) : 'custom'}
+          onChange={e => {
+            if (e.target.value === 'custom') {
+              setSpeedMode('custom');
+            } else {
+              setSpeedMode('preset');
+              setPresetSpeed(Number(e.target.value));
+            }
+          }}
+          style={inputStyle}
+        >
+          {SPEED_PRESETS.map(p => (
+            <option key={p.value} value={String(p.value)}>{p.label}</option>
+          ))}
+          <option value="custom">{t('pump.custom_speed')}</option>
+        </select>
+        {speedMode === 'custom' && (
+          <input
+            type="number"
+            value={customSpeed}
+            onChange={e => setCustomSpeed(Number(e.target.value))}
+            min={100}
+            step={50}
+            style={{ ...inputStyle, width: '80px', marginLeft: '6px' }}
+          />
+        )}
+        {speedMode === 'custom' && <span style={{ marginLeft: '4px' }}>{t('unit.rpm')}</span>}
+      </Field>
 
-          {/* System */}
-          <Section title={t('pump.system_head')}>
-            <Field label={t('pump.input_flow')}>
-              <input type="number" value={designFlow} onChange={e => setDesignFlow(Number(e.target.value))}
-                min={0} step={0.5} style={inputStyle} /> {t('unit.m3h')}
-            </Field>
-            <Field label={t('pump.static_head')}>
-              <input type="number" value={staticHead} onChange={e => setStaticHead(Number(e.target.value))}
-                step={0.5} style={inputStyle} /> {t('unit.m')}
-            </Field>
-            <Field label={t('pump.friction_head')}>
-              <input type="number" value={frictionHead} onChange={e => setFrictionHead(Number(e.target.value))}
-                min={0} step={0.5} style={inputStyle} /> {t('unit.m')}
-            </Field>
-          </Section>
+      {pumpSuggestion ? (
+        <>
+          <h4 style={{ margin: '12px 0 6px', fontSize: '0.9em', color: '#333' }}>{t('pump.design_point')}</h4>
+          <ResultRow label={t('pump.required_flow')} value={`${formatNum(designFlow, 1)} ${t('unit.m3h')}`} />
+          <ResultRow label={t('pump.required_head')} value={`${formatNum(totalHead, 1)} ${t('unit.m')}`} />
 
-          {/* NPSHa */}
-          <Section title={t('pump.npsha_settings')}>
-            <Field label={t('pump.suction_static_head')}>
-              <input type="number" value={suctionStaticHead} onChange={e => setSuctionStaticHead(Number(e.target.value))}
-                step={0.5} style={inputStyle} /> {t('unit.m')}
-            </Field>
-            <Field label={t('pump.suction_friction_loss')}>
-              <input type="number" value={suctionFrictionLoss} onChange={e => setSuctionFrictionLoss(Number(e.target.value))}
-                min={0} step={0.1} style={inputStyle} /> {t('unit.m')}
-            </Field>
-            <Field label={t('pump.atm_pressure')}>
-              <input type="number" value={atmPressure} onChange={e => setAtmPressure(Number(e.target.value))}
-                step={0.1} style={inputStyle} /> {t('unit.kpa')}
-            </Field>
-          </Section>
+          <h4 style={{ margin: '12px 0 6px', fontSize: '0.9em', color: '#333' }}>{t('pump.specific_speed')}</h4>
+          <ResultRow label="Ns" value={formatNum(pumpSuggestion.specificSpeed.ns, 0)} />
+          <ResultRow
+            label={t('pump.recommended_type')}
+            value={t(`pump.type.${pumpSuggestion.specificSpeed.pumpType}`)}
+          />
+
+          <h4 style={{ margin: '12px 0 6px', fontSize: '0.9em', color: '#333' }}>{t('pump.bep_range')}</h4>
+          <ResultRow
+            label={t('pump.bep_range')}
+            value={`${formatNum(pumpSuggestion.bep.bepFlowRange.min_m3h, 1)} ~ ${formatNum(pumpSuggestion.bep.bepFlowRange.max_m3h, 1)} ${t('unit.m3h')}`}
+          />
+          <ResultRow
+            label={t('pump.recommended_operating_range')}
+            value={`${formatNum(pumpSuggestion.bep.operatingRange.min_m3h, 1)} ~ ${formatNum(pumpSuggestion.bep.operatingRange.max_m3h, 1)} ${t('unit.m3h')}`}
+          />
+
+          {pumpSuggestion.maxNpshr_m !== null && (
+            <ResultRow
+              label={t('pump.max_npshr_allowed')}
+              value={`< ${formatNum(pumpSuggestion.maxNpshr_m, 2)} ${t('unit.m')}`}
+            />
+          )}
+
+          <ResultRow
+            label={t('pump.estimated_power')}
+            value={`~${formatNum(pumpSuggestion.estimatedPower_kW, 2)} ${t('pump.unit.kw')}`}
+          />
+
+          <div style={{ marginTop: '12px', fontSize: '0.8em', color: '#888' }}>
+            {t('pump.suggestion_note')}
+          </div>
+        </>
+      ) : (
+        <div style={{ color: '#999', fontSize: '0.85em' }}>
+          {t('pump.design_point')}: {t('pump.input_flow')} &gt; 0, {t('pump.required_head')} &gt; 0
         </div>
+      )}
+    </Section>
+  );
 
-        <div>
-          {/* Operating Point Results */}
-          <Section title={t('pump.operating_point')}>
-            {operatingPoint ? (
-              <>
-                <ResultRow label={t('pump.operating_flow')} value={`${formatNum(operatingPoint.flow_m3h, 2)} ${t('unit.m3h')}`} />
-                <ResultRow label={t('pump.operating_head')} value={`${formatNum(operatingPoint.head_m, 2)} ${t('unit.m')}`} />
-                <ResultRow label={t('pump.operating_efficiency')} value={`${formatNum(operatingPoint.efficiency_pct, 1)} ${t('unit.pct')}`} />
-                <ResultRow label={t('pump.npshr')} value={`${formatNum(operatingPoint.npshr_m, 2)} ${t('unit.m')}`} />
-                {npsha !== null && (
-                  <>
-                    <ResultRow label={t('pump.npsha')} value={`${formatNum(npsha, 2)} ${t('unit.m')}`} />
-                    <ResultRow label={t('pump.npsh_margin')} value={`${formatNum(npsha - operatingPoint.npshr_m, 2)} ${t('unit.m')}`} />
-                  </>
-                )}
-              </>
-            ) : (
-              <div style={{ color: '#c00', fontSize: '0.9em' }}>{t('pump.no_intersection')}</div>
-            )}
+  const chartSection = (
+    <Section title={t('pump.chart_title')}>
+      <PumpPerformanceChart
+        pumpCurve={pumpData.performance_curve}
+        resistanceCurve={resistanceCurve}
+        operatingPoint={operatingPoint}
+        t={t}
+        isDesktop={isDesktop}
+      />
+    </Section>
+  );
 
-            {warnings.length > 0 && (
-              <div style={{ marginTop: '12px' }}>
-                {warnings.map((w, i) => (
-                  <div key={i} style={{ color: '#c00', fontSize: '0.85em', padding: '4px 0' }}>
-                    {w}
-                  </div>
-                ))}
-              </div>
-            )}
-          </Section>
+  // ── Desktop: 3-column layout ──
+  if (isDesktop) {
+    return (
+      <div>
+        {dataBanner}
+        {pumpInfoSection}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', alignItems: 'start' }}>
+          {/* Left column: inputs */}
+          <div>
+            {fluidSection}
+            {systemHeadSection}
+            {npshaSection}
+          </div>
 
-          {/* Pump Suggestion */}
-          <Section title={t('pump.suggestion_title')}>
-            <Field label={t('pump.assumed_speed')}>
-              <select
-                value={speedMode === 'preset' ? String(presetSpeed) : 'custom'}
-                onChange={e => {
-                  if (e.target.value === 'custom') {
-                    setSpeedMode('custom');
-                  } else {
-                    setSpeedMode('preset');
-                    setPresetSpeed(Number(e.target.value));
-                  }
-                }}
-                style={inputStyle}
-              >
-                {SPEED_PRESETS.map(p => (
-                  <option key={p.value} value={String(p.value)}>{p.label}</option>
-                ))}
-                <option value="custom">{t('pump.custom_speed')}</option>
-              </select>
-              {speedMode === 'custom' && (
-                <input
-                  type="number"
-                  value={customSpeed}
-                  onChange={e => setCustomSpeed(Number(e.target.value))}
-                  min={100}
-                  step={50}
-                  style={{ ...inputStyle, width: '80px', marginLeft: '6px' }}
-                />
-              )}
-              {speedMode === 'custom' && <span style={{ marginLeft: '4px' }}>{t('unit.rpm')}</span>}
-            </Field>
+          {/* Center column: operating point & suggestion */}
+          <div>
+            {operatingPointSection}
+            {pumpSuggestionSection}
+          </div>
 
-            {pumpSuggestion ? (
-              <>
-                <h4 style={{ margin: '12px 0 6px', fontSize: '0.9em', color: '#333' }}>{t('pump.design_point')}</h4>
-                <ResultRow label={t('pump.required_flow')} value={`${formatNum(designFlow, 1)} ${t('unit.m3h')}`} />
-                <ResultRow label={t('pump.required_head')} value={`${formatNum(totalHead, 1)} ${t('unit.m')}`} />
-
-                <h4 style={{ margin: '12px 0 6px', fontSize: '0.9em', color: '#333' }}>{t('pump.specific_speed')}</h4>
-                <ResultRow label="Ns" value={formatNum(pumpSuggestion.specificSpeed.ns, 0)} />
-                <ResultRow
-                  label={t('pump.recommended_type')}
-                  value={t(`pump.type.${pumpSuggestion.specificSpeed.pumpType}`)}
-                />
-
-                <h4 style={{ margin: '12px 0 6px', fontSize: '0.9em', color: '#333' }}>{t('pump.bep_range')}</h4>
-                <ResultRow
-                  label={t('pump.bep_range')}
-                  value={`${formatNum(pumpSuggestion.bep.bepFlowRange.min_m3h, 1)} ~ ${formatNum(pumpSuggestion.bep.bepFlowRange.max_m3h, 1)} ${t('unit.m3h')}`}
-                />
-                <ResultRow
-                  label={t('pump.recommended_operating_range')}
-                  value={`${formatNum(pumpSuggestion.bep.operatingRange.min_m3h, 1)} ~ ${formatNum(pumpSuggestion.bep.operatingRange.max_m3h, 1)} ${t('unit.m3h')}`}
-                />
-
-                {pumpSuggestion.maxNpshr_m !== null && (
-                  <ResultRow
-                    label={t('pump.max_npshr_allowed')}
-                    value={`< ${formatNum(pumpSuggestion.maxNpshr_m, 2)} ${t('unit.m')}`}
-                  />
-                )}
-
-                <ResultRow
-                  label={t('pump.estimated_power')}
-                  value={`~${formatNum(pumpSuggestion.estimatedPower_kW, 2)} ${t('pump.unit.kw')}`}
-                />
-
-                <div style={{ marginTop: '12px', fontSize: '0.8em', color: '#888' }}>
-                  {t('pump.suggestion_note')}
-                </div>
-              </>
-            ) : (
-              <div style={{ color: '#999', fontSize: '0.85em' }}>
-                {t('pump.design_point')}: {t('pump.input_flow')} &gt; 0, {t('pump.required_head')} &gt; 0
-              </div>
-            )}
-          </Section>
+          {/* Right column: performance chart */}
+          <div style={{ position: 'sticky', top: '20px' }}>
+            {chartSection}
+          </div>
         </div>
       </div>
+    );
+  }
 
-      {/* SVG Chart */}
-      <Section title={t('pump.chart_title')}>
-        <PumpPerformanceChart
-          pumpCurve={pumpData.performance_curve}
-          resistanceCurve={resistanceCurve}
-          operatingPoint={operatingPoint}
-          t={t}
-          isDesktop={isDesktop}
-        />
-      </Section>
+  // ── Mobile / Tablet: single-column layout ──
+  return (
+    <div>
+      {dataBanner}
+      {pumpInfoSection}
+      {fluidSection}
+      {systemHeadSection}
+      {npshaSection}
+      {operatingPointSection}
+      {pumpSuggestionSection}
+      {chartSection}
     </div>
   );
 }
