@@ -1,0 +1,31 @@
+{
+  "referenceId": "asada-2012",
+  "reference": {
+    "source": "Asada (2012), Material Characterization of Alcohol-Water Mixtures, Univ. of Hawaii thesis (open access)",
+    "equation": "Piecewise 4th-order polynomial for pure methanol; volume-fraction linear mixing for density; log mixing rule for viscosity"
+  },
+  "fluid": "methanol_water",
+  "name": "Methanol - Water",
+  "name_ja": "メタノール水溶液",
+  "pure_methanol": {
+    "density": {
+      "breakpoint_c": 65,
+      "low":  [-2.086e-8, -5.043e-6, 2.214e-4, -0.9382, 809.646],
+      "high": [-1.628e-7, 5.755e-5, -9.929e-3, -0.2220, 791.160]
+    },
+    "viscosity": {
+      "breakpoint_c": 65,
+      "low":  [4.667e-12, -1.218e-9, 1.564e-7, -1.371e-5, 8.055e-4],
+      "high": [2.930e-13, -2.095e-10, 6.006e-8, -9.147e-6, 7.170e-4]
+    }
+  },
+  "concentration_range": {
+    "min": 0,
+    "max": 100,
+    "unit": "wt%"
+  },
+  "temperature_range": {
+    "min_c": 15,
+    "max_c": 55
+  }
+}

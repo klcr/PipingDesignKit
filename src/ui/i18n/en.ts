@@ -11,6 +11,7 @@ const en: Record<string, string> = {
   'fluid.ethylene_glycol_30': 'Ethylene Glycol 30%',
   'fluid.ethylene_glycol_50': 'Ethylene Glycol 50%',
   'fluid.temperature': 'Temperature',
+  'fluid.concentration': 'Concentration',
   'fluid.temp_range': 'Temperature Range',
   'fluid.density': 'Density',
   'fluid.viscosity': 'Viscosity',

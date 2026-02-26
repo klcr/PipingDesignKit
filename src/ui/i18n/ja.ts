@@ -11,6 +11,7 @@ const ja: Record<string, string> = {
   'fluid.ethylene_glycol_30': 'エチレングリコール 30%',
   'fluid.ethylene_glycol_50': 'エチレングリコール 50%',
   'fluid.temperature': '温度',
+  'fluid.concentration': '濃度',
   'fluid.temp_range': '温度範囲',
   'fluid.density': '密度',
   'fluid.viscosity': '粘度',
