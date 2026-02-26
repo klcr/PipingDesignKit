@@ -495,10 +495,30 @@ export function getSolutionInput(fluidId: SolutionId): SolutionInput {
 /**
  * 利用可能な継手一覧を返す（UI ドロップダウン用）
  */
-export function getAvailableFittings(): { id: string; description: string; description_ja?: string }[] {
-  const items: { id: string; description: string; description_ja?: string }[] = [];
-  for (const f of darby3kData.fittings) items.push({ id: f.id, description: f.description, description_ja: f.description_ja });
-  for (const e of entranceExitData.entrances) items.push({ id: e.id, description: e.description, description_ja: e.description_ja });
-  for (const x of entranceExitData.exits) items.push({ id: x.id, description: x.description, description_ja: x.description_ja });
+export function getAvailableFittings(): { id: string; description: string; description_ja?: string; refValue: string }[] {
+  const items: { id: string; description: string; description_ja?: string; refValue: string }[] = [];
+  for (const f of darby3kData.fittings) items.push({ id: f.id, description: f.description, description_ja: f.description_ja, refValue: `Ki=${f.ki}` });
+  for (const e of entranceExitData.entrances) items.push({ id: e.id, description: e.description, description_ja: e.description_ja, refValue: `K=${e.k}` });
+  for (const x of entranceExitData.exits) items.push({ id: x.id, description: x.description, description_ja: x.description_ja, refValue: `K=${x.k}` });
+  items.push({ id: 'custom_k', description: 'Custom (K value)', description_ja: 'カスタム (K値入力)', refValue: '' });
+  items.push({ id: 'custom_cv', description: 'Custom (Cv)', description_ja: 'カスタム (Cv)', refValue: '' });
   return items;
+}
+
+/**
+ * 流体の参考値ラベルを返す（UI ドロップダウン用）
+ * 単純流体: ρ=998@20°C、水溶液: 温度範囲
+ */
+export function getFluidRefLabel(entry: FluidEntry): string {
+  if (entry.kind === 'simple') {
+    const table = entry.data.saturation_table;
+    let closest = table[0];
+    for (const row of table) {
+      if (Math.abs(row.temp_c - 20) < Math.abs(closest.temp_c - 20)) {
+        closest = row;
+      }
+    }
+    return `\u03C1=${closest.density_kg_m3.toFixed(0)}@${closest.temp_c}\u00B0C`;
+  }
+  return `${entry.tempRange.min}~${entry.tempRange.max}\u00B0C`;
 }

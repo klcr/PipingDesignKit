@@ -44,6 +44,8 @@ const ja: Record<string, string> = {
   'fittings.quantity': '数量',
   'fittings.add': '継手を追加',
   'fittings.k_value': 'K値',
+  'fittings.custom_k': 'カスタム (K値入力)',
+  'fittings.custom_cv': 'カスタム (Cv)',
 
   // Elevation
   'elevation.title': '高低差',

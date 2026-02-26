@@ -9,7 +9,7 @@ import { getFluidProperties } from '@domain/fluid/fluidProperties';
 import { getSolutionProperties } from '@domain/fluid/aqueousSolution';
 import {
   waterData, darby3kData, entranceExitData, getAvailableFittings, getAvailableFluids,
-  getFluidData, getFluidTempRange, getFluidEntry, getSolutionInput,
+  getFluidData, getFluidTempRange, getFluidEntry, getSolutionInput, getFluidRefLabel,
   FluidId, SolutionId,
 } from '@infrastructure/dataLoader';
 import type { SolutionFluidEntry } from '@infrastructure/dataLoader';
@@ -23,6 +23,8 @@ import type { ExplanationSnapshot } from './explanation/types';
 interface FittingRow {
   fittingId: string;
   quantity: number;
+  customK?: number;
+  customCv?: number;
 }
 
 export interface PipeLossCalculatorHandle {
@@ -66,7 +68,12 @@ export const PipeLossCalculator = forwardRef<PipeLossCalculatorHandle, PipeLossC
 
   // Fittings
   const [fittingRows, setFittingRows] = useState<FittingRow[]>(
-    initialData?.fittings.map(f => ({ fittingId: f.fittingId, quantity: f.quantity }))
+    initialData?.fittings.map(f => ({
+      fittingId: f.fittingId,
+      quantity: f.quantity,
+      customK: f.kOverride,
+      customCv: f.cvOverride,
+    }))
       ?? [{ fittingId: 'elbow_90_lr_welded', quantity: 2 }]
   );
 
@@ -88,7 +95,12 @@ export const PipeLossCalculator = forwardRef<PipeLossCalculatorHandle, PipeLossC
         flowRate_m3h: flowRate,
         length_m: pipeLength,
         elevation_m: elevation,
-        fittings: fittingRows.filter(r => r.quantity > 0).map(r => ({ fittingId: r.fittingId, quantity: r.quantity })),
+        fittings: fittingRows.filter(r => r.quantity > 0).map(r => ({
+          fittingId: r.fittingId,
+          quantity: r.quantity,
+          ...(r.customK != null ? { kOverride: r.customK } : {}),
+          ...(r.customCv != null ? { cvOverride: r.customCv } : {}),
+        })),
       };
     },
   }));
@@ -124,7 +136,12 @@ export const PipeLossCalculator = forwardRef<PipeLossCalculatorHandle, PipeLossC
 
       const fittings = fittingRows
         .filter(r => r.quantity > 0)
-        .map(r => ({ fittingId: r.fittingId, quantity: r.quantity }));
+        .map(r => ({
+          fittingId: r.fittingId,
+          quantity: r.quantity,
+          ...(r.fittingId === 'custom_k' && r.customK != null ? { kOverride: r.customK } : {}),
+          ...(r.fittingId === 'custom_cv' && r.customCv != null ? { cvOverride: r.customCv } : {}),
+        }));
 
       let fluid;
       if (isSolution) {
@@ -157,7 +174,7 @@ export const PipeLossCalculator = forwardRef<PipeLossCalculatorHandle, PipeLossC
     setFittingRows(fittingRows.filter((_, i) => i !== index));
   };
 
-  const updateFitting = (index: number, field: keyof FittingRow, value: string | number) => {
+  const updateFitting = (index: number, field: string, value: string | number) => {
     const updated = [...fittingRows];
     updated[index] = { ...updated[index], [field]: value };
     setFittingRows(updated);
@@ -181,7 +198,7 @@ export const PipeLossCalculator = forwardRef<PipeLossCalculatorHandle, PipeLossC
                   }
                 }} style={inputStyle}>
                 {fluids.map(f => (
-                  <option key={f.id} value={f.id}>{localizedName(locale, f.name, f.name_ja)}</option>
+                  <option key={f.id} value={f.id}>{localizedName(locale, f.name, f.name_ja)} ({getFluidRefLabel(f)})</option>
                 ))}
               </select>
             </Field>
@@ -260,13 +277,21 @@ export const PipeLossCalculator = forwardRef<PipeLossCalculatorHandle, PipeLossC
           {/* Fittings */}
           <Section title={t('fittings.title')}>
             {fittingRows.map((row, i) => (
-              <div key={i} style={{ display: 'flex', gap: '8px', marginBottom: '4px', alignItems: 'center' }}>
+              <div key={i} style={{ display: 'flex', gap: '8px', marginBottom: '4px', alignItems: 'center', flexWrap: 'wrap' }}>
                 <select value={row.fittingId} onChange={e => updateFitting(i, 'fittingId', e.target.value)}
                   style={{ ...inputStyle, flex: 1 }}>
                   {availableFittings.map(f => (
-                    <option key={f.id} value={f.id}>{localizedName(locale, f.description, f.description_ja)}</option>
+                    <option key={f.id} value={f.id}>{localizedName(locale, f.description, f.description_ja)}{f.refValue ? ` (${f.refValue})` : ''}</option>
                   ))}
                 </select>
+                {row.fittingId === 'custom_k' && (
+                  <input type="number" value={row.customK ?? ''} onChange={e => updateFitting(i, 'customK', Number(e.target.value))}
+                    placeholder="K" min={0} step={0.1} style={{ ...inputStyle, width: '80px' }} />
+                )}
+                {row.fittingId === 'custom_cv' && (
+                  <input type="number" value={row.customCv ?? ''} onChange={e => updateFitting(i, 'customCv', Number(e.target.value))}
+                    placeholder="Cv" min={0.1} step={1} style={{ ...inputStyle, width: '80px' }} />
+                )}
                 <input type="number" value={row.quantity} onChange={e => updateFitting(i, 'quantity', Number(e.target.value))}
                   min={0} style={{ ...inputStyle, width: '60px' }} />
                 <button onClick={() => removeFitting(i)} style={{ padding: '4px 8px', cursor: 'pointer' }}>{'\u00D7'}</button>
@@ -378,7 +403,7 @@ function ResultsView({ result, t, fittingDescMap }: { result: SegmentResult; t: 
             <tbody>
               {result.fittingDetails.map((fd, i) => (
                 <tr key={i} style={{ borderBottom: '1px solid #eee' }}>
-                  <td style={{ padding: '4px' }}>{fittingDescMap.get(fd.id) ?? fd.description}</td>
+                  <td style={{ padding: '4px' }}>{fd.id.startsWith('custom_') ? fd.description : (fittingDescMap.get(fd.id) ?? fd.description)}</td>
                   <td style={{ textAlign: 'right', padding: '4px' }}>{fd.quantity}</td>
                   <td style={{ textAlign: 'right', padding: '4px' }}>{formatNum(fd.k_value, 4)}</td>
                   <td style={{ textAlign: 'right', padding: '4px' }}>{formatPa(fd.dp_pa)}</td>
