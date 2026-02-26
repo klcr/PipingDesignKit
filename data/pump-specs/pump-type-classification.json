@@ -1,0 +1,41 @@
+{
+  "referenceId": "pump-type-ns",
+  "classifications": [
+    {
+      "type": "radial",
+      "ns_min": 0,
+      "ns_max": 300,
+      "typicalEfficiency_pct": { "min": 55, "max": 75 },
+      "description": "Centrifugal (radial) pump",
+      "description_ja": "遠心（ラジアル）ポンプ"
+    },
+    {
+      "type": "francis",
+      "ns_min": 300,
+      "ns_max": 600,
+      "typicalEfficiency_pct": { "min": 60, "max": 80 },
+      "description": "Francis type pump",
+      "description_ja": "フランシス型ポンプ"
+    },
+    {
+      "type": "mixed_flow",
+      "ns_min": 600,
+      "ns_max": 1500,
+      "typicalEfficiency_pct": { "min": 65, "max": 85 },
+      "description": "Mixed flow pump",
+      "description_ja": "斜流ポンプ"
+    },
+    {
+      "type": "axial",
+      "ns_min": 1500,
+      "ns_max": 99999,
+      "typicalEfficiency_pct": { "min": 70, "max": 90 },
+      "description": "Axial flow pump",
+      "description_ja": "軸流ポンプ"
+    }
+  ],
+  "reference": {
+    "source": "Pump Handbook, 4th Ed., Karassik et al.",
+    "page": "Ch. 2"
+  }
+}

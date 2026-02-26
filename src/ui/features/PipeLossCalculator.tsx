@@ -10,6 +10,7 @@ import { getAvailableSizes, getAvailableSchedules, resolvePipeSpec, PipeStandard
 import { getAvailableMaterials, resolveMaterial } from '@infrastructure/materialResolver';
 import { calcSingleSegment } from '@application/calcSingleSegment';
 import { SingleSegmentProjectData } from '@infrastructure/persistence/projectFile';
+import type { PumpSelectionInput } from './PumpChart';
 
 interface FittingRow {
   fittingId: string;
@@ -22,10 +23,11 @@ export interface PipeLossCalculatorHandle {
 
 export interface PipeLossCalculatorProps {
   initialData?: SingleSegmentProjectData;
+  onSendToPump?: (input: PumpSelectionInput) => void;
 }
 
 export const PipeLossCalculator = forwardRef<PipeLossCalculatorHandle, PipeLossCalculatorProps>(
-  function PipeLossCalculator({ initialData }, ref) {
+  function PipeLossCalculator({ initialData, onSendToPump }, ref) {
   const { t, locale } = useTranslation();
 
   // Fluid
@@ -248,6 +250,27 @@ export const PipeLossCalculator = forwardRef<PipeLossCalculatorHandle, PipeLossC
               <p style={{ color: '#999' }}>{t('action.calculate')}...</p>
             )}
           </Section>
+
+          {result && onSendToPump && (
+            <button
+              onClick={() => {
+                onSendToPump({
+                  designFlow_m3h: flowRate,
+                  staticHead_m: result.head_elevation_m,
+                  frictionHead_m: result.head_friction_m + result.head_fittings_m,
+                  fluidId,
+                  temperature_c: temperature,
+                });
+              }}
+              style={{
+                marginTop: '8px', padding: '8px 20px', fontSize: '0.9em',
+                background: '#fff', color: '#0066cc', border: '2px solid #0066cc',
+                borderRadius: '6px', cursor: 'pointer', width: '100%',
+              }}
+            >
+              {t('action.send_to_pump')}
+            </button>
+          )}
         </div>
       </div>
   );

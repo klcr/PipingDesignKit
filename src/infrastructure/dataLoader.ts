@@ -19,6 +19,7 @@ import roughnessJson from '@data/pipe-specs/surface-roughness.json';
 import ansiJson from '@data/pipe-specs/ansi-b36.10m.json';
 import jisJson from '@data/pipe-specs/jis-g3452-sgp.json';
 import pumpJson from '@data/pump-curves/sample-centrifugal.json';
+import pumpTypeJson from '@data/pump-specs/pump-type-classification.json';
 
 // ── データ形状型（JSON スキーマに対応） ──
 
@@ -100,6 +101,19 @@ export const roughnessData = roughnessJson as unknown as RoughnessData;
 export const ansiData = ansiJson as unknown as AnsiData;
 export const jisData = jisJson as unknown as JisData;
 export const samplePumpData = pumpJson as unknown as PumpCurveData;
+
+// ── ポンプタイプ分類データ ──
+
+import type { PumpTypeClassification } from '@domain/system/pumpRequirements';
+
+interface PumpTypeClassificationData {
+  readonly referenceId: string;
+  readonly classifications: readonly PumpTypeClassification[];
+  readonly reference: { readonly source: string; readonly page: string };
+}
+
+const pumpTypeData = pumpTypeJson as unknown as PumpTypeClassificationData;
+export const pumpTypeClassifications = pumpTypeData.classifications;
 
 // ── 流体データレジストリ ──
 
