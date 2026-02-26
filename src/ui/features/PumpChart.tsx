@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useTranslation } from '../i18n/context';
-import { useIsMobile, useIsDesktop } from '../hooks/useBreakpoint';
+import { useIsDesktop } from '../hooks/useBreakpoint';
 import { localizedName } from '../i18n/localizedName';
 import { Section, Field, ResultRow, inputStyle } from '../components/FormLayout';
 import { formatNum } from '../components/formatters';
@@ -35,7 +35,6 @@ interface PumpChartProps {
 
 export function PumpChart({ initialInput, onInputConsumed }: PumpChartProps) {
   const { t, locale } = useTranslation();
-  const isMobile = useIsMobile();
   const isDesktop = useIsDesktop();
 
   // Fluid
