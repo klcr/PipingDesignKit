@@ -5,9 +5,15 @@ import { Section, Field, ResultRow, inputStyle, smallBtnStyle } from '../compone
 import { formatNum, formatPa } from '../components/formatters';
 import { SystemResult, SegmentResult } from '@domain/types';
 import { getFluidProperties } from '@domain/fluid/fluidProperties';
+import { getSolutionProperties } from '@domain/fluid/aqueousSolution';
 import { RouteNode, RouteConversionConfig, ElbowConnectionType, RouteAnalysis } from '@domain/route/types';
 import { analyzeRoute } from '@domain/route/routeToSegments';
-import { waterData, craneData, ftData, getAvailableFittings, getAvailableFluids, getFluidData, getFluidTempRange, FluidId } from '@infrastructure/dataLoader';
+import {
+  waterData, craneData, ftData, getAvailableFittings, getAvailableFluids,
+  getFluidData, getFluidTempRange, getFluidEntry, getSolutionInput,
+  FluidId, SolutionId,
+} from '@infrastructure/dataLoader';
+import type { SolutionFluidEntry } from '@infrastructure/dataLoader';
 import { getAvailableSizes, getAvailableSchedules, resolvePipeSpec, PipeStandardKey } from '@infrastructure/pipeSpecResolver';
 import { getAvailableMaterials, resolveMaterial } from '@infrastructure/materialResolver';
 import { calcRoute } from '@application/calcRoute';
@@ -63,9 +69,13 @@ export const RouteEditor = forwardRef<RouteEditorHandle, RouteEditorProps>(
   // System-level inputs
   const [fluidId, setFluidId] = useState<FluidId>((initialData?.fluidId as FluidId) ?? 'water');
   const [temperature, setTemperature] = useState(initialData?.temperature_c ?? 20);
+  const [concentration, setConcentration] = useState<number>(30);
   const [flowRate, setFlowRate] = useState(initialData?.flowRate_m3h ?? 10);
   const fluids = useMemo(() => getAvailableFluids(), []);
   const tempRange = useMemo(() => getFluidTempRange(fluidId), [fluidId]);
+  const fluidEntry = useMemo(() => getFluidEntry(fluidId), [fluidId]);
+  const isSolution = fluidEntry.kind === 'solution';
+  const solutionEntry = isSolution ? fluidEntry as SolutionFluidEntry : null;
 
   // Pipe specification (route-wide)
   const [pipeStandard, setPipeStandard] = useState<PipeStandardKey>(
@@ -249,8 +259,14 @@ export const RouteEditor = forwardRef<RouteEditorHandle, RouteEditorProps>(
 
       if (routeNodes.length < 2) throw new Error(t('route.min_nodes'));
 
-      const fluidData = getFluidData(fluidId);
-      const fluid = getFluidProperties(temperature, fluidData, { source: fluidData.referenceId });
+      let fluid;
+      if (isSolution) {
+        const solInput = getSolutionInput(fluidId as SolutionId);
+        fluid = getSolutionProperties(temperature, concentration, solutionEntry!.concentrationUnit, solInput);
+      } else {
+        const fluidData = getFluidData(fluidId);
+        fluid = getFluidProperties(temperature, fluidData, { source: fluidData.referenceId });
+      }
 
       const res = calcRoute(
         {
@@ -275,7 +291,14 @@ export const RouteEditor = forwardRef<RouteEditorHandle, RouteEditorProps>(
       {/* System-level inputs */}
       <Section title={t('system.flow_conditions')}>
         <Field label={t('fluid.type')}>
-          <select value={fluidId} onChange={e => setFluidId(e.target.value as FluidId)} style={inputStyle}>
+          <select value={fluidId} onChange={e => {
+              const newId = e.target.value as FluidId;
+              setFluidId(newId);
+              const newEntry = getFluidEntry(newId);
+              if (newEntry.kind === 'solution') {
+                setConcentration((newEntry as SolutionFluidEntry).defaultConcentration);
+              }
+            }} style={inputStyle}>
             {fluids.map(f => (
               <option key={f.id} value={f.id}>{localizedName(locale, f.name, f.name_ja)}</option>
             ))}
@@ -288,6 +311,17 @@ export const RouteEditor = forwardRef<RouteEditorHandle, RouteEditorProps>(
             ({tempRange.min}~{tempRange.max}{t('unit.celsius')})
           </span>
         </Field>
+        {solutionEntry && (
+          <Field label={`${t('fluid.concentration')} [${solutionEntry.concentrationUnit}]`}>
+            <input type="number" value={concentration} onChange={e => setConcentration(Number(e.target.value))}
+              min={solutionEntry.concentrationRange.min}
+              max={solutionEntry.concentrationRange.max}
+              step={1} style={inputStyle} /> {solutionEntry.concentrationUnit}
+            <span style={{ fontSize: '0.8em', color: '#888', marginLeft: '8px' }}>
+              ({solutionEntry.concentrationRange.min}~{solutionEntry.concentrationRange.max})
+            </span>
+          </Field>
+        )}
         <Field label={t('flow.rate')}>
           <input type="number" value={flowRate} onChange={e => setFlowRate(Number(e.target.value))}
             min={0} step={0.1} style={inputStyle} /> {t('unit.m3h')}

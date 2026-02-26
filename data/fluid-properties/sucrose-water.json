@@ -1,0 +1,84 @@
+{
+  "referenceId": "nbs440-icumsa",
+  "reference": {
+    "source": "NBS Circular 440 (1942); ICUMSA SPS-3; Perry's Chemical Engineers' Handbook 8th ed. Table 2-88",
+    "equation": "Density: 5th-order polynomial fit to ICUMSA table (20°C); Viscosity: 2D table interpolation"
+  },
+  "fluid": "sucrose_water",
+  "name": "Sucrose - Water",
+  "name_ja": "スクロース（砂糖）水溶液",
+  "density_20c_coefficients": [998.1958, 3.8646, 9.5907e-3, 3.4327e-4, -3.7358e-6, 1.7433e-8],
+  "viscosity_table": [
+    {"temp_c": 20, "brix":  0, "viscosity_mpa_s": 1.002},
+    {"temp_c": 20, "brix": 10, "viscosity_mpa_s": 1.336},
+    {"temp_c": 20, "brix": 20, "viscosity_mpa_s": 1.945},
+    {"temp_c": 20, "brix": 30, "viscosity_mpa_s": 3.187},
+    {"temp_c": 20, "brix": 40, "viscosity_mpa_s": 6.200},
+    {"temp_c": 20, "brix": 50, "viscosity_mpa_s": 15.43},
+    {"temp_c": 20, "brix": 60, "viscosity_mpa_s": 56.50},
+    {"temp_c": 20, "brix": 70, "viscosity_mpa_s": 485.0},
+
+    {"temp_c": 25, "brix":  0, "viscosity_mpa_s": 0.891},
+    {"temp_c": 25, "brix": 10, "viscosity_mpa_s": 1.165},
+    {"temp_c": 25, "brix": 20, "viscosity_mpa_s": 1.666},
+    {"temp_c": 25, "brix": 30, "viscosity_mpa_s": 2.652},
+    {"temp_c": 25, "brix": 40, "viscosity_mpa_s": 4.975},
+    {"temp_c": 25, "brix": 50, "viscosity_mpa_s": 11.67},
+    {"temp_c": 25, "brix": 60, "viscosity_mpa_s": 40.40},
+    {"temp_c": 25, "brix": 70, "viscosity_mpa_s": 315.0},
+
+    {"temp_c": 30, "brix":  0, "viscosity_mpa_s": 0.798},
+    {"temp_c": 30, "brix": 10, "viscosity_mpa_s": 1.026},
+    {"temp_c": 30, "brix": 20, "viscosity_mpa_s": 1.446},
+    {"temp_c": 30, "brix": 30, "viscosity_mpa_s": 2.245},
+    {"temp_c": 30, "brix": 40, "viscosity_mpa_s": 4.063},
+    {"temp_c": 30, "brix": 50, "viscosity_mpa_s": 8.980},
+    {"temp_c": 30, "brix": 60, "viscosity_mpa_s": 29.30},
+    {"temp_c": 30, "brix": 70, "viscosity_mpa_s": 209.0},
+
+    {"temp_c": 40, "brix":  0, "viscosity_mpa_s": 0.653},
+    {"temp_c": 40, "brix": 10, "viscosity_mpa_s": 0.826},
+    {"temp_c": 40, "brix": 20, "viscosity_mpa_s": 1.124},
+    {"temp_c": 40, "brix": 30, "viscosity_mpa_s": 1.673},
+    {"temp_c": 40, "brix": 40, "viscosity_mpa_s": 2.838},
+    {"temp_c": 40, "brix": 50, "viscosity_mpa_s": 5.660},
+    {"temp_c": 40, "brix": 60, "viscosity_mpa_s": 16.50},
+    {"temp_c": 40, "brix": 70, "viscosity_mpa_s": 99.00},
+
+    {"temp_c": 50, "brix":  0, "viscosity_mpa_s": 0.547},
+    {"temp_c": 50, "brix": 10, "viscosity_mpa_s": 0.686},
+    {"temp_c": 50, "brix": 20, "viscosity_mpa_s": 0.904},
+    {"temp_c": 50, "brix": 30, "viscosity_mpa_s": 1.294},
+    {"temp_c": 50, "brix": 40, "viscosity_mpa_s": 2.078},
+    {"temp_c": 50, "brix": 50, "viscosity_mpa_s": 3.790},
+    {"temp_c": 50, "brix": 60, "viscosity_mpa_s": 9.800},
+    {"temp_c": 50, "brix": 70, "viscosity_mpa_s": 51.00},
+
+    {"temp_c": 60, "brix":  0, "viscosity_mpa_s": 0.467},
+    {"temp_c": 60, "brix": 10, "viscosity_mpa_s": 0.574},
+    {"temp_c": 60, "brix": 20, "viscosity_mpa_s": 0.738},
+    {"temp_c": 60, "brix": 30, "viscosity_mpa_s": 1.040},
+    {"temp_c": 60, "brix": 40, "viscosity_mpa_s": 1.617},
+    {"temp_c": 60, "brix": 50, "viscosity_mpa_s": 2.740},
+    {"temp_c": 60, "brix": 60, "viscosity_mpa_s": 6.260},
+    {"temp_c": 60, "brix": 70, "viscosity_mpa_s": 27.50},
+
+    {"temp_c": 80, "brix":  0, "viscosity_mpa_s": 0.355},
+    {"temp_c": 80, "brix": 10, "viscosity_mpa_s": 0.423},
+    {"temp_c": 80, "brix": 20, "viscosity_mpa_s": 0.527},
+    {"temp_c": 80, "brix": 30, "viscosity_mpa_s": 0.700},
+    {"temp_c": 80, "brix": 40, "viscosity_mpa_s": 1.020},
+    {"temp_c": 80, "brix": 50, "viscosity_mpa_s": 1.580},
+    {"temp_c": 80, "brix": 60, "viscosity_mpa_s": 3.150},
+    {"temp_c": 80, "brix": 70, "viscosity_mpa_s": 11.00}
+  ],
+  "concentration_range": {
+    "min": 0,
+    "max": 75,
+    "unit": "Brix (≈ wt%)"
+  },
+  "temperature_range": {
+    "min_c": 20,
+    "max_c": 80
+  }
+}

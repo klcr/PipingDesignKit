@@ -1,0 +1,39 @@
+{
+  "referenceId": "melinder-2010-eg",
+  "reference": {
+    "source": "Melinder (2010), LBNL Buildings Library v9.1.0 (BSD-3)",
+    "equation": "Property(T, X) = Σ aₖ · (100·(X − X_ref))^i · (T − T_ref)^j"
+  },
+  "fluid": "eg_water",
+  "name": "Ethylene Glycol - Water",
+  "name_ja": "エチレングリコール水溶液",
+  "x_ref": 0.308462,
+  "t_ref_k": 304.878,
+  "n_terms": [4, 4, 4, 3, 2, 1],
+  "density_coefficients": [
+    1.034e3, -4.781e-1, -2.692e-3, 4.725e-6,
+    1.311, -6.876e-3, 4.805e-5, 1.690e-8,
+    7.490e-5, 7.855e-5, -3.995e-7, 4.982e-9,
+    -1.062e-4, 1.229e-6, -1.153e-8,
+    -9.623e-7, -7.221e-8,
+    4.891e-8
+  ],
+  "viscosity_coefficients": [
+    4.705e-1, -2.550e-2, 1.782e-4, -7.669e-7,
+    2.471e-2, -1.171e-4, 1.052e-6, -1.634e-8,
+    3.328e-6, -1.086e-6, -1.051e-8, -6.475e-10,
+    1.695e-6, 3.157e-9, 4.063e-10,
+    3.089e-8, 1.831e-10,
+    -1.865e-9
+  ],
+  "concentration_range": {
+    "min": 0,
+    "max": 0.6,
+    "unit": "mass fraction"
+  },
+  "temperature_range": {
+    "min_k": 243,
+    "max_k": 373,
+    "note": "Freezing point depends on concentration; 243 K at ~60 wt%"
+  }
+}
