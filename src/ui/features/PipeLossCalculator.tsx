@@ -4,7 +4,8 @@ import { localizedName } from '../i18n/localizedName';
 import { Section, Field, ResultRow, inputStyle } from '../components/FormLayout';
 import { formatNum, formatPa } from '../components/formatters';
 import { SegmentResult } from '@domain/types';
-import { waterData, craneData, ftData, getAvailableFittings } from '@infrastructure/dataLoader';
+import { getFluidProperties } from '@domain/fluid/fluidProperties';
+import { waterData, craneData, ftData, getAvailableFittings, getAvailableFluids, getFluidData, getFluidTempRange, FluidId } from '@infrastructure/dataLoader';
 import { getAvailableSizes, getAvailableSchedules, resolvePipeSpec, PipeStandardKey } from '@infrastructure/pipeSpecResolver';
 import { getAvailableMaterials, resolveMaterial } from '@infrastructure/materialResolver';
 import { calcSingleSegment } from '@application/calcSingleSegment';
@@ -28,7 +29,10 @@ export const PipeLossCalculator = forwardRef<PipeLossCalculatorHandle, PipeLossC
   const { t, locale } = useTranslation();
 
   // Fluid
+  const [fluidId, setFluidId] = useState<FluidId>((initialData?.fluidId as FluidId) ?? 'water');
   const [temperature, setTemperature] = useState(initialData?.temperature_c ?? 20);
+  const fluids = useMemo(() => getAvailableFluids(), []);
+  const tempRange = useMemo(() => getFluidTempRange(fluidId), [fluidId]);
 
   // Pipe
   const [pipeStandard, setPipeStandard] = useState<PipeStandardKey>(
@@ -58,6 +62,7 @@ export const PipeLossCalculator = forwardRef<PipeLossCalculatorHandle, PipeLossC
   useImperativeHandle(ref, () => ({
     getProjectData(): SingleSegmentProjectData {
       return {
+        fluidId,
         temperature_c: temperature,
         pipeStandard,
         nominalSize,
@@ -104,8 +109,11 @@ export const PipeLossCalculator = forwardRef<PipeLossCalculatorHandle, PipeLossC
         .filter(r => r.quantity > 0)
         .map(r => ({ fittingId: r.fittingId, quantity: r.quantity }));
 
+      const fluidData = getFluidData(fluidId);
+      const fluid = getFluidProperties(temperature, fluidData, { source: fluidData.referenceId });
+
       const res = calcSingleSegment(
-        { temperature_c: temperature, pipe: pipeSpec, material, flowRate_m3h: flowRate, length_m: pipeLength, elevation_m: elevation, fittings },
+        { temperature_c: temperature, pipe: pipeSpec, material, flowRate_m3h: flowRate, length_m: pipeLength, elevation_m: elevation, fittings, fluid },
         waterData, craneData, ftData
       );
       setResult(res);
@@ -135,13 +143,18 @@ export const PipeLossCalculator = forwardRef<PipeLossCalculatorHandle, PipeLossC
           {/* Fluid */}
           <Section title={t('fluid.title')}>
             <Field label={t('fluid.type')}>
-              <select value="water" style={inputStyle} disabled>
-                <option value="water">{t('fluid.water')}</option>
+              <select value={fluidId} onChange={e => setFluidId(e.target.value as FluidId)} style={inputStyle}>
+                {fluids.map(f => (
+                  <option key={f.id} value={f.id}>{localizedName(locale, f.name, f.name_ja)}</option>
+                ))}
               </select>
             </Field>
             <Field label={t('fluid.temperature')}>
               <input type="number" value={temperature} onChange={e => setTemperature(Number(e.target.value))}
-                min={0} max={200} style={inputStyle} /> {t('unit.celsius')}
+                min={tempRange.min} max={tempRange.max} style={inputStyle} /> {t('unit.celsius')}
+              <span style={{ fontSize: '0.8em', color: '#888', marginLeft: '8px' }}>
+                ({tempRange.min}~{tempRange.max}{t('unit.celsius')})
+              </span>
             </Field>
           </Section>
 

@@ -20,6 +20,7 @@ export interface FittingRowData {
 // ── 単セグメント ──
 
 export interface SingleSegmentProjectData {
+  readonly fluidId?: string;
   readonly temperature_c: number;
   readonly pipeStandard: string;
   readonly nominalSize: string;
@@ -44,6 +45,7 @@ export interface MultiSegmentEntryData {
 }
 
 export interface MultiSegmentProjectData {
+  readonly fluidId?: string;
   readonly temperature_c: number;
   readonly flowRate_m3h: number;
   readonly segments: MultiSegmentEntryData[];
@@ -60,6 +62,7 @@ export interface RouteNodeData {
 }
 
 export interface RouteProjectData {
+  readonly fluidId?: string;
   readonly temperature_c: number;
   readonly flowRate_m3h: number;
   readonly pipeStandard: string;

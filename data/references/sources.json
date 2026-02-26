@@ -67,6 +67,35 @@
       "volume": "102(5)",
       "year": 1976,
       "pages": "657-664"
+    },
+    {
+      "id": "sharqawy-2010",
+      "title": "Thermophysical properties of seawater: a review of existing correlations and data",
+      "author": "Sharqawy, M.H., Lienhard V, J.H., and Zubair, S.M.",
+      "journal": "Desalination and Water Treatment",
+      "volume": "16",
+      "year": 2010,
+      "pages": "354-380"
+    },
+    {
+      "id": "ashrae-2021-eg30",
+      "title": "ASHRAE Handbook — Fundamentals, Chapter 31: Physical Properties of Secondary Coolants",
+      "author": "ASHRAE",
+      "edition": "2021 Edition",
+      "note": "30% ethylene glycol aqueous solution"
+    },
+    {
+      "id": "ashrae-2021-eg50",
+      "title": "ASHRAE Handbook — Fundamentals, Chapter 31: Physical Properties of Secondary Coolants",
+      "author": "ASHRAE",
+      "edition": "2021 Edition",
+      "note": "50% ethylene glycol aqueous solution"
+    },
+    {
+      "id": "sample-pump-data",
+      "title": "Sample pump performance data for demonstration purposes",
+      "author": "PipingDesignKit",
+      "note": "Representative centrifugal pump curve — not for production use"
     }
   ]
 }

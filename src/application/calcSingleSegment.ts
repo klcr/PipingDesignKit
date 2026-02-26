@@ -29,8 +29,8 @@ export function calcSingleSegment(
   craneData: CraneData,
   ftData: FtData
 ): SegmentResult {
-  // 1. 温度から流体物性を取得
-  const fluid = getWaterProperties(input.temperature_c, waterData);
+  // 1. 流体物性を取得（input.fluid 指定時はそれを使用、なければ水物性テーブルから補間）
+  const fluid = input.fluid ?? getWaterProperties(input.temperature_c, waterData);
 
   // 2. SegmentInput を組み立て（flowRate_m3h → m3s 変換）
   const segmentInput: SegmentInput = {

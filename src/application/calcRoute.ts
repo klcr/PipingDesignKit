@@ -30,8 +30,8 @@ export function calcRoute(
   craneData: CraneData,
   ftData: FtData
 ): SystemResult {
-  // 1. 温度から流体物性を取得
-  const fluid = getWaterProperties(input.temperature_c, waterData);
+  // 1. 流体物性を取得（input.fluid 指定時はそれを使用、なければ水物性テーブルから補間）
+  const fluid = input.fluid ?? getWaterProperties(input.temperature_c, waterData);
 
   // 2. 流量変換
   const flowRate_m3s = flowRateToM3s(input.flowRate_m3h, 'm3/h');
