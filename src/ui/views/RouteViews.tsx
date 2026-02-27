@@ -19,6 +19,9 @@ interface RouteViewsProps {
   nodes: readonly RouteNode[];
   analysis: RouteAnalysis;
   onNodeDrag?: (index: number, x: number, y: number) => void;
+  onNodeDragElevation?: (index: number, x: number, z: number) => void;
+  onSegmentDragPlan?: (segmentIndex: number, deltaX: number, deltaY: number) => void;
+  onSegmentDragElevation?: (segmentIndex: number, deltaX: number, deltaZ: number) => void;
   onDragStart?: () => void;
   onDragEnd?: () => void;
   hasChanges?: boolean;
@@ -32,7 +35,7 @@ interface RouteViewsProps {
 
 export function RouteViews({
   nodes, analysis,
-  onNodeDrag, onDragStart, onDragEnd,
+  onNodeDrag, onNodeDragElevation, onSegmentDragPlan, onSegmentDragElevation, onDragStart, onDragEnd,
   hasChanges, onConfirm, onCancel,
   canUndo, canRedo, onUndo, onRedo,
 }: RouteViewsProps) {
@@ -107,6 +110,7 @@ export function RouteViews({
               nodes={nodes}
               analysis={analysis}
               onNodeDrag={onNodeDrag}
+              onSegmentDrag={onSegmentDragPlan}
               onDragStart={onDragStart}
               onDragEnd={onDragEnd}
             />
@@ -118,7 +122,15 @@ export function RouteViews({
             onReset={() => elevRef.current?.resetTransform()}
             resetLabel={t('view.reset_view')}
           >
-            <ElevationView ref={elevRef} nodes={nodes} analysis={analysis} />
+            <ElevationView
+              ref={elevRef}
+              nodes={nodes}
+              analysis={analysis}
+              onNodeDrag={onNodeDragElevation}
+              onSegmentDrag={onSegmentDragElevation}
+              onDragStart={onDragStart}
+              onDragEnd={onDragEnd}
+            />
           </ViewPanel>
 
           {/* Isometric View (bottom, spanning both columns) */}

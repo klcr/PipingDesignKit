@@ -148,6 +148,14 @@ const ja: Record<string, string> = {
   'project.default_name': '無題プロジェクト',
   'project.import_error': '読み込みエラー',
 
+  // Project List
+  'projectList.title': 'プロジェクト一覧',
+  'projectList.register': '一覧に登録',
+  'projectList.empty': 'プロジェクトがありません',
+  'projectList.bulkExport': '一括エクスポート',
+  'projectList.bulkImport': '一括インポート',
+  'projectList.remove': '削除',
+
   // Units
   'unit.m3h': 'm³/h',
   'unit.lmin': 'L/min',

@@ -148,6 +148,14 @@ const en: Record<string, string> = {
   'project.default_name': 'Untitled Project',
   'project.import_error': 'Import error',
 
+  // Project List
+  'projectList.title': 'Project List',
+  'projectList.register': 'Register to List',
+  'projectList.empty': 'No projects',
+  'projectList.bulkExport': 'Bulk Export',
+  'projectList.bulkImport': 'Bulk Import',
+  'projectList.remove': 'Remove',
+
   // Units
   'unit.m3h': 'm³/h',
   'unit.lmin': 'L/min',

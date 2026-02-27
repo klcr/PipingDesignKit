@@ -13,6 +13,7 @@ export interface ViewSyncState {
   selectedNodeIndex: number | null;
   selectedSegmentIndex: number | null;
   draggingNodeIndex: number | null;
+  draggingSegmentIndex: number | null;
   isDragging: boolean;
 }
 
@@ -24,6 +25,8 @@ interface ViewSyncActions {
   selectSegment(index: number | null): void;
   startDrag(index: number): void;
   endDrag(): void;
+  startSegmentDrag(index: number): void;
+  endSegmentDrag(): void;
   deselectAll(): void;
 }
 
@@ -36,6 +39,7 @@ export function ViewSyncProvider({ children }: { children: ReactNode }) {
     selectedNodeIndex: null,
     selectedSegmentIndex: null,
     draggingNodeIndex: null,
+    draggingSegmentIndex: null,
     isDragging: false,
   });
 
@@ -59,6 +63,7 @@ export function ViewSyncProvider({ children }: { children: ReactNode }) {
         selectedNodeIndex: index,
         selectedSegmentIndex: null,
         draggingNodeIndex: null,
+        draggingSegmentIndex: null,
         isDragging: false,
       };
     });
@@ -70,6 +75,7 @@ export function ViewSyncProvider({ children }: { children: ReactNode }) {
       selectedSegmentIndex: prev.selectedSegmentIndex === index ? null : index,
       selectedNodeIndex: null,
       draggingNodeIndex: null,
+      draggingSegmentIndex: null,
       isDragging: false,
     }));
   }, []);
@@ -91,12 +97,30 @@ export function ViewSyncProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
+  const startSegmentDrag = useCallback((index: number) => {
+    setState(prev => ({
+      ...prev,
+      draggingSegmentIndex: index,
+      isDragging: true,
+      selectedSegmentIndex: index,
+    }));
+  }, []);
+
+  const endSegmentDrag = useCallback(() => {
+    setState(prev => ({
+      ...prev,
+      draggingSegmentIndex: null,
+      isDragging: false,
+    }));
+  }, []);
+
   const deselectAll = useCallback(() => {
     setState(prev => ({
       ...prev,
       selectedNodeIndex: null,
       selectedSegmentIndex: null,
       draggingNodeIndex: null,
+      draggingSegmentIndex: null,
       isDragging: false,
     }));
   }, []);
@@ -104,7 +128,7 @@ export function ViewSyncProvider({ children }: { children: ReactNode }) {
   return (
     <ViewSyncContext.Provider value={{
       state, hoverNode, hoverSegment, selectNode, selectSegment,
-      startDrag, endDrag, deselectAll,
+      startDrag, endDrag, startSegmentDrag, endSegmentDrag, deselectAll,
     }}>
       {children}
     </ViewSyncContext.Provider>

@@ -4,6 +4,7 @@
  * 配管ルートを上面から見た 2D SVG 表示。
  * Z 座標（高さ）は無視される。
  * 選択済みノードのドラッグ移動に対応（Shift で軸拘束）。
+ * 選択済みセグメントの平行移動に対応。
  */
 
 import { useMemo, useRef, useCallback, forwardRef, useImperativeHandle } from 'react';
@@ -28,17 +29,19 @@ interface PlanViewProps {
   nodes: readonly RouteNode[];
   analysis: RouteAnalysis;
   onNodeDrag?: (index: number, x: number, y: number) => void;
+  onSegmentDrag?: (segmentIndex: number, deltaX: number, deltaY: number) => void;
   onDragStart?: () => void;
   onDragEnd?: () => void;
 }
 
 const DRAG_THRESHOLD = 3; // pixels
 const COLOR_NODE_DRAGGING = '#cc3300';
+const COLOR_PIPE_DRAGGING = '#cc6600';
 
 export const PlanView = forwardRef<ViewHandle, PlanViewProps>(
-  function PlanView({ nodes, analysis, onNodeDrag, onDragStart, onDragEnd }, ref) {
+  function PlanView({ nodes, analysis, onNodeDrag, onSegmentDrag, onDragStart, onDragEnd }, ref) {
   const { t } = useTranslation();
-  const { state, hoverNode, hoverSegment, selectNode, selectSegment, startDrag, endDrag, deselectAll } = useViewSync();
+  const { state, hoverNode, hoverSegment, selectNode, selectSegment, startDrag, endDrag, startSegmentDrag, endSegmentDrag, deselectAll } = useViewSync();
   const svgRef = useRef<SVGSVGElement>(null);
   const { transform, handlePanStart, handlePanMove, handlePanEnd, resetTransform } = useViewTransform(svgRef);
   const dragRef = useRef<{
@@ -48,6 +51,14 @@ export const PlanView = forwardRef<ViewHandle, PlanViewProps>(
     started: boolean;
     startWorldX: number;
     startWorldY: number;
+  } | null>(null);
+  const segDragRef = useRef<{
+    segmentIndex: number;
+    startClientX: number;
+    startClientY: number;
+    started: boolean;
+    lastWorldX: number;
+    lastWorldY: number;
   } | null>(null);
 
   useImperativeHandle(ref, () => ({ resetTransform }), [resetTransform]);
@@ -68,7 +79,7 @@ export const PlanView = forwardRef<ViewHandle, PlanViewProps>(
     [baseViewBox, transform]
   );
 
-  // ── Node drag handlers (Plan View only) ──
+  // ── Node drag handlers ──
 
   const handleNodeMouseDown = useCallback((e: React.MouseEvent, i: number) => {
     if (state.selectedNodeIndex !== i) return;
@@ -84,6 +95,28 @@ export const PlanView = forwardRef<ViewHandle, PlanViewProps>(
       startWorldY: nodes[i].position.y,
     };
   }, [state.selectedNodeIndex, onNodeDrag, nodes]);
+
+  // ── Segment drag handlers ──
+
+  const handleSegmentMouseDown = useCallback((e: React.MouseEvent, segIdx: number) => {
+    if (state.selectedSegmentIndex !== segIdx) return;
+    if (!onSegmentDrag) return;
+    e.stopPropagation();
+    e.preventDefault();
+
+    const svgPt = svgRef.current ? clientToSvgPoint(svgRef.current, e.clientX, e.clientY) : null;
+    if (!svgPt) return;
+    const world = inversePlan(svgPt);
+
+    segDragRef.current = {
+      segmentIndex: segIdx,
+      startClientX: e.clientX,
+      startClientY: e.clientY,
+      started: false,
+      lastWorldX: world.x,
+      lastWorldY: world.y,
+    };
+  }, [state.selectedSegmentIndex, onSegmentDrag]);
 
   const handleSvgMouseMove = useCallback((e: React.MouseEvent<SVGSVGElement>) => {
     // Node drag
@@ -120,18 +153,50 @@ export const PlanView = forwardRef<ViewHandle, PlanViewProps>(
       return;
     }
 
+    // Segment drag
+    if (segDragRef.current && svgRef.current && onSegmentDrag) {
+      const dx = e.clientX - segDragRef.current.startClientX;
+      const dy = e.clientY - segDragRef.current.startClientY;
+
+      if (!segDragRef.current.started) {
+        if (Math.abs(dx) + Math.abs(dy) < DRAG_THRESHOLD) return;
+        segDragRef.current.started = true;
+        startSegmentDrag(segDragRef.current.segmentIndex);
+        onDragStart?.();
+      }
+
+      const svgPt = clientToSvgPoint(svgRef.current, e.clientX, e.clientY);
+      if (!svgPt) return;
+      const world = inversePlan(svgPt);
+
+      const deltaX = Math.round((world.x - segDragRef.current.lastWorldX) * 10) / 10;
+      const deltaY = Math.round((world.y - segDragRef.current.lastWorldY) * 10) / 10;
+
+      if (deltaX !== 0 || deltaY !== 0) {
+        onSegmentDrag(segDragRef.current.segmentIndex, deltaX, deltaY);
+        segDragRef.current.lastWorldX += deltaX;
+        segDragRef.current.lastWorldY += deltaY;
+      }
+      return;
+    }
+
     // Pan
     handlePanMove(e, svgRef.current);
-  }, [onNodeDrag, startDrag, onDragStart, handlePanMove]);
+  }, [onNodeDrag, onSegmentDrag, startDrag, startSegmentDrag, onDragStart, handlePanMove]);
 
   const handleSvgMouseUp = useCallback(() => {
     if (dragRef.current?.started) {
       endDrag();
       onDragEnd?.();
     }
+    if (segDragRef.current?.started) {
+      endSegmentDrag();
+      onDragEnd?.();
+    }
     dragRef.current = null;
+    segDragRef.current = null;
     handlePanEnd();
-  }, [endDrag, onDragEnd, handlePanEnd]);
+  }, [endDrag, endSegmentDrag, onDragEnd, handlePanEnd]);
 
   const handleSvgMouseDown = useCallback((e: React.MouseEvent<SVGSVGElement>) => {
     if (e.target === svgRef.current) {
@@ -161,8 +226,15 @@ export const PlanView = forwardRef<ViewHandle, PlanViewProps>(
         const to = projected[run.toNodeIndex];
         const isHovered = state.hoveredSegmentIndex === i;
         const isSelected = state.selectedSegmentIndex === i;
-        const color = isSelected ? COLOR_PIPE_SELECTED : isHovered ? COLOR_PIPE_HOVER : COLOR_PIPE;
-        const strokeWidth = isSelected ? PIPE_STROKE * 2.5 : isHovered ? PIPE_STROKE * 1.8 : PIPE_STROKE;
+        const isBeingDragged = state.draggingSegmentIndex === i;
+        const color = isBeingDragged ? COLOR_PIPE_DRAGGING
+          : isSelected ? COLOR_PIPE_SELECTED
+          : isHovered ? COLOR_PIPE_HOVER
+          : COLOR_PIPE;
+        const strokeWidth = isBeingDragged ? PIPE_STROKE * 2.8
+          : isSelected ? PIPE_STROKE * 2.5
+          : isHovered ? PIPE_STROKE * 1.8
+          : PIPE_STROKE;
 
         return (
           <g key={`seg-${i}`}>
@@ -172,10 +244,12 @@ export const PlanView = forwardRef<ViewHandle, PlanViewProps>(
               stroke={color}
               strokeWidth={strokeWidth}
               strokeLinecap="round"
-              style={{ cursor: isDragging ? 'grabbing' : 'pointer' }}
+              strokeDasharray={isBeingDragged ? `${PIPE_STROKE * 2} ${PIPE_STROKE}` : undefined}
+              style={{ cursor: isSelected && onSegmentDrag ? 'grab' : isDragging ? 'grabbing' : 'pointer' }}
               onMouseEnter={() => !isDragging && hoverSegment(i)}
               onMouseLeave={() => !isDragging && hoverSegment(null)}
               onClick={(e) => { if (!isDragging) { e.stopPropagation(); selectSegment(i); } }}
+              onMouseDown={(e) => handleSegmentMouseDown(e, i)}
             />
             <DimensionLabel from={from} to={to} length={run.length_m} />
           </g>

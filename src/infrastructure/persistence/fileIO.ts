@@ -12,8 +12,11 @@ import {
   SingleSegmentProjectData,
   MultiSegmentProjectData,
   RouteProjectData,
+  ProjectListFile,
   serializeProjectFile,
   parseProjectFile,
+  serializeProjectListFile,
+  parseProjectListFile,
 } from './projectFile';
 
 // ── Export (download) ──
@@ -81,6 +84,61 @@ export function openProjectFile(): Promise<ProjectFile | null> {
     // focus が戻った後もファイルが選択されていなければ null
     input.addEventListener('cancel', () => resolve(null));
 
+    input.click();
+  });
+}
+
+// ── 一括 Export/Import ──
+
+/**
+ * プロジェクト一覧を JSON としてダウンロードする。
+ */
+export function downloadProjectListFile(projects: ProjectFile[], listName: string): void {
+  const listFile: ProjectListFile = {
+    version: PROJECT_FILE_VERSION,
+    projects,
+  };
+  const json = serializeProjectListFile(listFile);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = sanitizeFilename(listName) + '_list.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/**
+ * ファイル選択ダイアログを開き、プロジェクト一覧 JSON を読み込む。
+ */
+export function openProjectListFile(): Promise<ProjectListFile | null> {
+  return new Promise((resolve, reject) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json,application/json';
+
+    input.addEventListener('change', () => {
+      const file = input.files?.[0];
+      if (!file) { resolve(null); return; }
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const text = reader.result as string;
+          const listFile = parseProjectListFile(text);
+          resolve(listFile);
+        } catch (e) {
+          reject(e instanceof Error ? e : new Error(String(e)));
+        }
+      };
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsText(file);
+    });
+
+    input.addEventListener('cancel', () => resolve(null));
     input.click();
   });
 }
