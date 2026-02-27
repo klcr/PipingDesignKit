@@ -231,6 +231,42 @@ export const RouteEditor = forwardRef<RouteEditorHandle, RouteEditorProps>(
     });
   }, [setNodes]);
 
+  const handleNodeDragElevation = useCallback((index: number, x: number, z: number) => {
+    setNodes((prev: NodeFormState[]) => {
+      const next = [...prev];
+      next[index] = { ...next[index], x, z };
+      return next;
+    });
+  }, [setNodes]);
+
+  const handleSegmentDragPlan = useCallback((segmentIndex: number, deltaX: number, deltaY: number) => {
+    if (!analysis) return;
+    const run = analysis.straightRuns[segmentIndex];
+    if (!run) return;
+    setNodes((prev: NodeFormState[]) => {
+      const next = [...prev];
+      const from = next[run.fromNodeIndex];
+      const to = next[run.toNodeIndex];
+      next[run.fromNodeIndex] = { ...from, x: from.x + deltaX, y: from.y + deltaY };
+      next[run.toNodeIndex] = { ...to, x: to.x + deltaX, y: to.y + deltaY };
+      return next;
+    });
+  }, [analysis, setNodes]);
+
+  const handleSegmentDragElevation = useCallback((segmentIndex: number, deltaX: number, deltaZ: number) => {
+    if (!analysis) return;
+    const run = analysis.straightRuns[segmentIndex];
+    if (!run) return;
+    setNodes((prev: NodeFormState[]) => {
+      const next = [...prev];
+      const from = next[run.fromNodeIndex];
+      const to = next[run.toNodeIndex];
+      next[run.fromNodeIndex] = { ...from, x: from.x + deltaX, z: from.z + deltaZ };
+      next[run.toNodeIndex] = { ...to, x: to.x + deltaX, z: to.z + deltaZ };
+      return next;
+    });
+  }, [analysis, setNodes]);
+
   const handleDragStart = useCallback(() => {
     beginBatch();
   }, [beginBatch]);
@@ -484,6 +520,9 @@ export const RouteEditor = forwardRef<RouteEditorHandle, RouteEditorProps>(
           nodes={routeNodes}
           analysis={analysis}
           onNodeDrag={handleNodeDrag}
+          onNodeDragElevation={handleNodeDragElevation}
+          onSegmentDragPlan={handleSegmentDragPlan}
+          onSegmentDragElevation={handleSegmentDragElevation}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
           hasChanges={hasChanges}

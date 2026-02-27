@@ -271,3 +271,46 @@ export function parseProjectFile(jsonString: string): ProjectFile {
 export function serializeProjectFile(project: ProjectFile): string {
   return JSON.stringify(project, null, 2);
 }
+
+// ── プロジェクト一覧ファイル（一括 import/export 用） ──
+
+export interface ProjectListFile {
+  readonly version: typeof PROJECT_FILE_VERSION;
+  readonly projects: ProjectFile[];
+}
+
+/**
+ * JSON 文字列をパースしてバリデーション済みの ProjectListFile を返す。
+ */
+export function parseProjectListFile(jsonString: string): ProjectListFile {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(jsonString);
+  } catch {
+    throw new Error('Invalid JSON format');
+  }
+
+  if (!isObject(parsed)) throw new Error('Project list file must be a JSON object');
+  if (parsed.version !== PROJECT_FILE_VERSION) {
+    throw new Error(`Unsupported version: ${String(parsed.version)} (expected ${PROJECT_FILE_VERSION})`);
+  }
+  if (!Array.isArray(parsed.projects)) throw new Error('projects must be an array');
+
+  const projects = (parsed.projects as unknown[]).map((item: unknown, i: number) => {
+    const json = JSON.stringify(item);
+    try {
+      return parseProjectFile(json);
+    } catch (e) {
+      throw new Error(`projects[${i}]: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  });
+
+  return { version: PROJECT_FILE_VERSION, projects };
+}
+
+/**
+ * ProjectListFile を整形 JSON 文字列にシリアライズする。
+ */
+export function serializeProjectListFile(list: ProjectListFile): string {
+  return JSON.stringify(list, null, 2);
+}
