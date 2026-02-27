@@ -398,62 +398,58 @@ export const RouteEditor = forwardRef<RouteEditorHandle, RouteEditorProps>(
 
   const nodeTableSection = (
     <Section title={t('route.node_table')}>
-      <div className="node-table-scroll">
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9em' }}>
-          <thead>
-            <tr style={{ borderBottom: '2px solid #ccc' }}>
-              <th style={thStyle}>{t('route.node_id')}</th>
-              <th style={thStyle}>X (m)</th>
-              <th style={thStyle}>Y (m)</th>
-              <th style={thStyle}>Z (m)</th>
-              <th style={thStyle}>{t('route.additional_fittings')}</th>
-              <th style={{ ...thStyle, width: '80px' }}></th>
-            </tr>
-          </thead>
-          <tbody>
-            {nodes.map((node, i) => (
-              <tr key={node.id} style={{ borderBottom: '1px solid #eee' }}>
-                <td style={tdStyle}>
-                  <span style={{ fontWeight: 'bold', color: '#555' }}>N{i + 1}</span>
-                </td>
-                <td style={tdStyle}>
-                  <input type="number" value={node.x} onChange={e => updateNode(i, { x: Number(e.target.value) })}
-                    step={0.1} style={{ ...inputStyle, width: '60px' }} />
-                </td>
-                <td style={tdStyle}>
-                  <input type="number" value={node.y} onChange={e => updateNode(i, { y: Number(e.target.value) })}
-                    step={0.1} style={{ ...inputStyle, width: '60px' }} />
-                </td>
-                <td style={tdStyle}>
-                  <input type="number" value={node.z} onChange={e => updateNode(i, { z: Number(e.target.value) })}
-                    step={0.1} style={{ ...inputStyle, width: '60px' }} />
-                </td>
-                <td style={tdStyle}>
-                  <NodeFittings
-                    fittingRows={node.fittingRows}
-                    availableFittings={availableFittings}
-                    onChange={fittingRows => updateNode(i, { fittingRows })}
-                    t={t}
-                    locale={locale}
-                  />
-                </td>
-                <td style={tdStyle}>
-                  <div style={{ display: 'flex', gap: '2px' }}>
-                    {i > 0 && (
-                      <button onClick={() => moveNode(i, -1)} style={smallBtnStyle} title={t('route.move_up')}>{'\u25B2'}</button>
-                    )}
-                    {i < nodes.length - 1 && (
-                      <button onClick={() => moveNode(i, 1)} style={smallBtnStyle} title={t('route.move_down')}>{'\u25BC'}</button>
-                    )}
-                    {nodes.length > 2 && (
-                      <button onClick={() => removeNode(i)} style={{ ...smallBtnStyle, color: '#c00' }} title={t('route.remove_node')}>{'\u2715'}</button>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="node-table-scroll" style={{ fontSize: '0.9em' }}>
+        {/* Column headers */}
+        <div style={{
+          ...nodeTier1Style,
+          borderBottom: '2px solid #ccc',
+          paddingBottom: '4px',
+          marginBottom: '4px',
+        }}>
+          <span style={{ fontSize: '0.85em', color: '#555' }}></span>
+          <span style={{ fontSize: '0.85em', color: '#555' }}>X (m)</span>
+          <span style={{ fontSize: '0.85em', color: '#555' }}>Y (m)</span>
+          <span style={{ fontSize: '0.85em', color: '#555' }}>Z (m)</span>
+          <span></span>
+        </div>
+
+        {/* Node cards */}
+        {nodes.map((node, i) => (
+          <div key={node.id} style={nodeCardStyle}>
+            {/* Tier 1: ID + XYZ + Actions */}
+            <div style={nodeTier1Style}>
+              <span style={{ fontWeight: 'bold', color: '#555', fontSize: '0.85em' }}>N{i + 1}</span>
+              <input type="number" value={node.x} onChange={e => updateNode(i, { x: Number(e.target.value) })}
+                step={0.1} style={coordInputStyle} />
+              <input type="number" value={node.y} onChange={e => updateNode(i, { y: Number(e.target.value) })}
+                step={0.1} style={coordInputStyle} />
+              <input type="number" value={node.z} onChange={e => updateNode(i, { z: Number(e.target.value) })}
+                step={0.1} style={coordInputStyle} />
+              <div style={{ display: 'flex', gap: '2px' }}>
+                {i > 0 && (
+                  <button onClick={() => moveNode(i, -1)} style={smallBtnStyle} title={t('route.move_up')}>{'\u25B2'}</button>
+                )}
+                {i < nodes.length - 1 && (
+                  <button onClick={() => moveNode(i, 1)} style={smallBtnStyle} title={t('route.move_down')}>{'\u25BC'}</button>
+                )}
+                {nodes.length > 2 && (
+                  <button onClick={() => removeNode(i)} style={{ ...smallBtnStyle, color: '#c00' }} title={t('route.remove_node')}>{'\u2715'}</button>
+                )}
+              </div>
+            </div>
+
+            {/* Tier 2: Fittings */}
+            <div style={nodeTier2Style}>
+              <NodeFittings
+                fittingRows={node.fittingRows}
+                availableFittings={availableFittings}
+                onChange={fittingRows => updateNode(i, { fittingRows })}
+                t={t}
+                locale={locale}
+              />
+            </div>
+          </div>
+        ))}
       </div>
       <button onClick={addNode} style={{
         marginTop: '8px', padding: '8px 16px', cursor: 'pointer', border: '1px solid #0066cc',
@@ -867,4 +863,27 @@ const thStyle: React.CSSProperties = {
 const tdStyle: React.CSSProperties = {
   padding: '4px 8px',
   verticalAlign: 'top',
+};
+
+const nodeCardStyle: React.CSSProperties = {
+  borderBottom: '1px solid #eee',
+  padding: '6px 0',
+};
+
+const nodeTier1Style: React.CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: '28px 1fr 1fr 1fr auto',
+  gap: '4px',
+  alignItems: 'center',
+};
+
+const nodeTier2Style: React.CSSProperties = {
+  marginTop: '4px',
+  paddingLeft: '28px',
+};
+
+const coordInputStyle: React.CSSProperties = {
+  ...inputStyle,
+  width: '100%',
+  minWidth: 0,
 };
