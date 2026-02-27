@@ -328,7 +328,7 @@ export const RouteEditor = forwardRef<RouteEditorHandle, RouteEditorProps>(
             if (newEntry.kind === 'solution') {
               setConcentration((newEntry as SolutionFluidEntry).defaultConcentration);
             }
-          }} style={inputStyle}>
+          }} style={{ ...inputStyle, width: '100%' }}>
           {fluids.map(f => (
             <option key={f.id} value={f.id}>{localizedName(locale, f.name, f.name_ja)} ({getFluidRefLabel(f)})</option>
           ))}
@@ -362,13 +362,13 @@ export const RouteEditor = forwardRef<RouteEditorHandle, RouteEditorProps>(
   const pipeSettingsSection = (
     <Section title={t('route.pipe_settings')}>
       <Field label={t('pipe.standard')}>
-        <select value={pipeStandard} onChange={e => { setPipeStandard(e.target.value as PipeStandardKey); setNominalSize('2'); }} style={inputStyle}>
+        <select value={pipeStandard} onChange={e => { setPipeStandard(e.target.value as PipeStandardKey); setNominalSize('2'); }} style={{ ...inputStyle, width: '100%' }}>
           <option value="ansi">{t('pipe.standard.ansi')}</option>
           <option value="jis-sgp">{t('pipe.standard.jis_sgp')}</option>
         </select>
       </Field>
       <Field label={t('pipe.nominal_size')}>
-        <select value={nominalSize} onChange={e => setNominalSize(e.target.value)} style={inputStyle}>
+        <select value={nominalSize} onChange={e => setNominalSize(e.target.value)} style={{ ...inputStyle, width: '100%' }}>
           {pipeSizes.map(s => (
             <option key={s.nps} value={s.nps}>{s.nps} ({s.dn}A)</option>
           ))}
@@ -376,13 +376,13 @@ export const RouteEditor = forwardRef<RouteEditorHandle, RouteEditorProps>(
       </Field>
       {pipeStandard === 'ansi' && (
         <Field label={t('pipe.schedule')}>
-          <select value={schedule} onChange={e => setSchedule(e.target.value)} style={inputStyle}>
+          <select value={schedule} onChange={e => setSchedule(e.target.value)} style={{ ...inputStyle, width: '100%' }}>
             {schedules.map(s => <option key={s} value={s}>Sch {s}</option>)}
           </select>
         </Field>
       )}
       <Field label={t('pipe.material')}>
-        <select value={materialId} onChange={e => setMaterialId(e.target.value)} style={inputStyle}>
+        <select value={materialId} onChange={e => setMaterialId(e.target.value)} style={{ ...inputStyle, width: '100%' }}>
           {materials.map(m => (
             <option key={m.id} value={m.id}>{localizedName(locale, m.name, m.name_ja)} ({'\u03B5'}={m.roughness_mm}mm)</option>
           ))}
@@ -418,15 +418,15 @@ export const RouteEditor = forwardRef<RouteEditorHandle, RouteEditorProps>(
                 </td>
                 <td style={tdStyle}>
                   <input type="number" value={node.x} onChange={e => updateNode(i, { x: Number(e.target.value) })}
-                    step={0.1} style={{ ...inputStyle, width: '80px' }} />
+                    step={0.1} style={{ ...inputStyle, width: '60px' }} />
                 </td>
                 <td style={tdStyle}>
                   <input type="number" value={node.y} onChange={e => updateNode(i, { y: Number(e.target.value) })}
-                    step={0.1} style={{ ...inputStyle, width: '80px' }} />
+                    step={0.1} style={{ ...inputStyle, width: '60px' }} />
                 </td>
                 <td style={tdStyle}>
                   <input type="number" value={node.z} onChange={e => updateNode(i, { z: Number(e.target.value) })}
-                    step={0.1} style={{ ...inputStyle, width: '80px' }} />
+                    step={0.1} style={{ ...inputStyle, width: '60px' }} />
                 </td>
                 <td style={tdStyle}>
                   <NodeFittings
@@ -467,13 +467,13 @@ export const RouteEditor = forwardRef<RouteEditorHandle, RouteEditorProps>(
   const elbowSettingsSection = (
     <Section title={t('route.elbow_settings')}>
       <Field label={t('route.elbow_connection')}>
-        <select value={elbowConnection} onChange={e => setElbowConnection(e.target.value as ElbowConnectionType)} style={inputStyle}>
+        <select value={elbowConnection} onChange={e => setElbowConnection(e.target.value as ElbowConnectionType)} style={{ ...inputStyle, width: '100%' }}>
           <option value="welded">{t('route.elbow_welded')}</option>
           <option value="threaded">{t('route.elbow_threaded')}</option>
         </select>
       </Field>
       <Field label={t('route.elbow_90_type')}>
-        <select value={use90LR ? 'lr' : 'std'} onChange={e => setUse90LR(e.target.value === 'lr')} style={inputStyle}>
+        <select value={use90LR ? 'lr' : 'std'} onChange={e => setUse90LR(e.target.value === 'lr')} style={{ ...inputStyle, width: '100%' }}>
           <option value="lr">{t('route.elbow_lr')}</option>
           <option value="std">{t('route.elbow_std')}</option>
         </select>
@@ -564,7 +564,7 @@ export const RouteEditor = forwardRef<RouteEditorHandle, RouteEditorProps>(
     return (
       <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr 300px', gap: '16px', alignItems: 'start' }}>
         {/* Left column: inputs */}
-        <div>
+        <div style={{ minWidth: 0 }}>
           {flowConditionsSection}
           {pipeSettingsSection}
           {nodeTableSection}

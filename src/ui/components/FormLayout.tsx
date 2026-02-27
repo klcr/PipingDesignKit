@@ -29,8 +29,8 @@ export function Field({ label, children }: { label: string; children: React.Reac
       gap: isMobile ? '2px' : '8px',
       marginBottom: '6px',
     }}>
-      <label style={{ width: isMobile ? 'auto' : '120px', fontSize: '0.9em', color: '#555' }}>{label}</label>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
+      <label style={{ width: isMobile ? 'auto' : '100px', flexShrink: 0, fontSize: '0.9em', color: '#555' }}>{label}</label>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
         {children}
       </div>
     </div>
@@ -56,6 +56,8 @@ export const inputStyle: React.CSSProperties = {
   border: '1px solid #ccc',
   borderRadius: '4px',
   fontSize: '0.9em',
+  minWidth: 0,
+  boxSizing: 'border-box',
 };
 
 /** 共通小ボタンスタイル */
