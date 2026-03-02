@@ -328,6 +328,17 @@ const en: Record<string, string> = {
   'explain.var_speed_desc': 'Pump rotational speed. Determined by frequency and number of poles.',
   'explain.var_efficiency': 'Estimated efficiency',
   'explain.var_efficiency_desc': 'Mid-range of typical efficiency for the specific speed classification',
+
+  // Calculation warnings
+  'warn.title': 'Warnings',
+  'warn.very_low_reynolds': 'Very low Reynolds number (Re = {re}). At this flow rate the calculation accuracy is significantly reduced.',
+  'warn.transitional_flow': 'Transitional flow regime (Re = {re}). In the range Re 2,100–4,000, flow oscillates between laminar and turbulent, and calculated friction factors may not match actual conditions. Consider this result as approximate.',
+  'warn.high_velocity': 'Flow velocity ({v} m/s) exceeds 3 m/s. This may cause erosion, noise, or vibration. Check if a larger pipe size is appropriate.',
+  'warn.low_velocity': 'Flow velocity ({v} m/s) is below 0.5 m/s. Low velocity may cause solids settling or scale buildup in the pipe.',
+  'warn.high_relative_roughness': 'Relative roughness \u03B5/D = {eps_d} (roughness {roughness} mm, ID {id} mm) is large. The friction factor is highly sensitive to roughness at this pipe size.',
+  'warn.3k_diameter_range': 'Pipe ID ({d_inch}") is outside the Darby 3-K method\'s validated range (0.5"–24"). Fitting K-value accuracy may be reduced.',
+  'warn.fittings_dominant': 'Fitting losses (\u03A3K = {sum_k}) exceed straight-pipe losses (fL/D = {f_ld}). Verify that all fittings are correctly specified, as they dominate the total pressure drop.',
+  'warn.large_elevation': 'Large elevation change (\u0394z = {dz} m). Note that intermediate high points in the pipe route may experience pressures below the fluid vapor pressure, risking flashing. Only the inlet-outlet elevation difference is used in this calculation.',
 };
 
 export default en;

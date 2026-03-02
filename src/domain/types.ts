@@ -23,6 +23,18 @@ export interface Reference {
   readonly equation?: string;
 }
 
+// ── 計算警告 ──
+
+export type WarningSeverity = 'info' | 'warning' | 'caution';
+export type WarningCategory = 'fluid' | 'friction' | 'fittings' | 'elevation' | 'velocity';
+
+export interface CalcWarning {
+  readonly severity: WarningSeverity;
+  readonly category: WarningCategory;
+  readonly messageKey: string;
+  readonly messageParams?: Record<string, string | number>;
+}
+
 // ── 流動状態 ──
 
 export type FlowRegime = 'laminar' | 'transitional' | 'turbulent';
@@ -112,6 +124,7 @@ export interface SegmentResult {
 
   readonly fittingDetails: FittingResult[];
   readonly references: Reference[];
+  readonly warnings: readonly CalcWarning[];
 }
 
 // ── 系統入力・結果（直列マルチセグメント） ──
@@ -136,4 +149,5 @@ export interface SystemResult {
   readonly head_total_m: number;
 
   readonly references: Reference[];
+  readonly warnings: readonly CalcWarning[];
 }

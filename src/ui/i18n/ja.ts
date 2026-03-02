@@ -328,6 +328,17 @@ const ja: Record<string, string> = {
   'explain.var_speed_desc': 'ポンプの回転数。50Hz/60Hz の極数で決まる。',
   'explain.var_efficiency': '推定効率',
   'explain.var_efficiency_desc': '比速度から推定される典型効率の中央値',
+
+  // 計算警告
+  'warn.title': '注意事項',
+  'warn.very_low_reynolds': 'レイノルズ数が極めて低い (Re = {re})。この流量では計算精度が著しく低下します。',
+  'warn.transitional_flow': '遷移域 (Re = {re})。Re 2,100〜4,000 の範囲では層流と乱流が間欠的に切り替わり、摩擦係数の計算値と実測値のズレが最大になります。結果は目安としてください。',
+  'warn.high_velocity': '流速 ({v} m/s) が 3 m/s を超えています。エロージョン・騒音・振動の原因となる可能性があります。口径の拡大を検討してください。',
+  'warn.low_velocity': '流速 ({v} m/s) が 0.5 m/s 未満です。スラリーの沈降やスケール付着の原因となる場合があります。',
+  'warn.high_relative_roughness': '相対粗度 \u03B5/D = {eps_d}（粗度 {roughness} mm、内径 {id} mm）が大きい値です。この口径では摩擦係数が粗度に強く依存します。',
+  'warn.3k_diameter_range': '管内径 ({d_inch}") が Darby 3-K法の検証範囲 (0.5"〜24") 外です。継手K値の精度が低下する可能性があります。',
+  'warn.fittings_dominant': '継手損失 (\u03A3K = {sum_k}) が直管損失 (fL/D = {f_ld}) を上回っています。継手の指定が正しいか確認してください。全圧損に占める継手の割合が支配的です。',
+  'warn.large_elevation': '高低差が大きい (\u0394z = {dz} m)。配管ルートの中間高所で圧力が流体の蒸気圧を下回り、フラッシングが発生するリスクがあります。本計算では入口〜出口の高低差のみを使用しています。',
 };
 
 export default ja;
