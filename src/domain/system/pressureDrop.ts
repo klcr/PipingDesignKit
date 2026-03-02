@@ -19,6 +19,7 @@ import { churchillFrictionFactor } from '../pipe/frictionFactor';
 import { calcStraightPipeLoss, pressureToHead } from '../pipe/straightPipeLoss';
 import { resolveFittings, Darby3KData, EntranceExitData } from '../fittings/fittingLoss';
 import { calcElevationLoss } from './headLoss';
+import { generateSegmentWarnings } from './calcWarnings';
 
 /**
  * 区間ごとの圧損を計算する
@@ -72,6 +73,19 @@ export function calcSegmentPressureDrop(
   const head_elevation = elevation_m;
   const head_total = pressureToHead(dp_total, fluid.density);
 
+  // 警告生成
+  const warnings = generateSegmentWarnings({
+    reynolds,
+    flowRegime,
+    velocity_m_s: velocity,
+    roughness_mm: material.roughness_mm,
+    id_mm: pipe.id_mm,
+    fittingDetails,
+    elevation_m: elevation_m,
+    frictionFactor: f,
+    length_m,
+  });
+
   // 出典集約
   const references: Reference[] = [
     frictionResult.reference,
@@ -99,5 +113,6 @@ export function calcSegmentPressureDrop(
 
     fittingDetails,
     references,
+    warnings,
   };
 }

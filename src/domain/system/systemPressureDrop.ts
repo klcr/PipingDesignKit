@@ -8,7 +8,7 @@
  * 温度変化なし（断熱系）→ 流体物性は全セグメント共通
  */
 
-import { SystemInput, SystemResult, SegmentResult, Reference } from '../types';
+import { SystemInput, SystemResult, SegmentResult, Reference, CalcWarning } from '../types';
 import { calcSegmentPressureDrop } from './pressureDrop';
 import { Darby3KData, EntranceExitData } from '../fittings/fittingLoss';
 import { pressureToHead } from '../pipe/straightPipeLoss';
@@ -40,6 +40,7 @@ export function calcSystemPressureDrop(
       head_elevation_total_m: 0,
       head_total_m: 0,
       references: [],
+      warnings: [],
     };
   }
 
@@ -88,6 +89,19 @@ export function calcSystemPressureDrop(
     }
   }
 
+  // 警告の集約（全セグメントの警告をフラット化、重複排除）
+  const warningKeys = new Set<string>();
+  const warnings: CalcWarning[] = [];
+  for (const sr of segmentResults) {
+    for (const w of sr.warnings) {
+      const key = w.messageKey;
+      if (!warningKeys.has(key)) {
+        warningKeys.add(key);
+        warnings.push(w);
+      }
+    }
+  }
+
   return {
     segmentResults,
     dp_friction_total,
@@ -99,5 +113,6 @@ export function calcSystemPressureDrop(
     head_elevation_total_m,
     head_total_m,
     references,
+    warnings,
   };
 }

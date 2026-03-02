@@ -4,6 +4,7 @@ import { useIsMobile } from '../hooks/useBreakpoint';
 import { localizedName } from '../i18n/localizedName';
 import { Section, Field, ResultRow, inputStyle } from '../components/FormLayout';
 import { formatNum, formatPa } from '../components/formatters';
+import { WarningPanel } from '../components/WarningPanel';
 import { SegmentResult } from '@domain/types';
 import { getFluidProperties } from '@domain/fluid/fluidProperties';
 import { getSolutionProperties } from '@domain/fluid/aqueousSolution';
@@ -385,6 +386,14 @@ function ResultsView({ result, t, fittingDescMap }: { result: SegmentResult; t: 
           bold
         />
       </div>
+
+      {/* Warnings */}
+      {result.warnings.length > 0 && (
+        <>
+          <hr style={{ margin: '12px 0', border: 'none', borderTop: '1px solid #ddd' }} />
+          <WarningPanel warnings={result.warnings} t={t} />
+        </>
+      )}
 
       {/* Fitting details */}
       {result.fittingDetails.length > 0 && (

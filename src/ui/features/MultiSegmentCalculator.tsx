@@ -4,6 +4,7 @@ import { useIsDesktop } from '../hooks/useBreakpoint';
 import { localizedName } from '../i18n/localizedName';
 import { Section, Field, ResultRow, inputStyle, smallBtnStyle } from '../components/FormLayout';
 import { formatNum, formatPa } from '../components/formatters';
+import { WarningPanel } from '../components/WarningPanel';
 import { SystemResult, SegmentResult } from '@domain/types';
 import { getFluidProperties } from '@domain/fluid/fluidProperties';
 import { getSolutionProperties } from '@domain/fluid/aqueousSolution';
@@ -547,6 +548,11 @@ function SystemResultsView({ result, t, fittingDescMap }: { result: SystemResult
           <ResultRow label={t('system.dp_total')} value={formatPa(result.dp_total)} sub={`${formatNum(result.head_total_m, 3)} m`} bold />
         </div>
       </Section>
+
+      {/* Warnings */}
+      {result.warnings.length > 0 && (
+        <WarningPanel warnings={result.warnings} t={t} />
+      )}
 
       {/* Per-segment results */}
       <Section title={t('system.per_segment')}>
