@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useTranslation } from '../i18n/context';
 import { useIsDesktop } from '../hooks/useBreakpoint';
 import { localizedName } from '../i18n/localizedName';
@@ -12,12 +12,43 @@ import type { PumpExplanationSnapshot } from './explanation/types';
 
 // ── 圧損計算からの受け渡しデータ型 ──
 
+export type SourceTab = 'single' | 'multi' | 'route';
+
 export interface PumpSelectionInput {
   designFlow_m3h: number;
   staticHead_m: number;
   frictionHead_m: number;
   fluidId: FluidId;
   temperature_c: number;
+  sourceTab: SourceTab;
+}
+
+// ── ポンプ分析結果サマリー（計算タブへの返却用） ──
+
+export interface PumpResultSummary {
+  sourceTab: SourceTab;
+  designFlow_m3h: number;
+  staticHead_m: number;
+  frictionHead_m: number;
+  totalHead_m: number;
+  operatingPoint: {
+    flow_m3h: number;
+    head_m: number;
+    efficiency_pct: number;
+    npshr_m: number;
+  } | null;
+  specificSpeed_ns: number | null;
+  recommendedType: string | null;
+  estimatedPower_kW: number | null;
+  npsha_m: number | null;
+  npshMargin_m: number | null;
+  warnings: string[];
+  miniChartPaths: {
+    pumpCurvePath: string;
+    resistanceCurvePath: string;
+    opPointX: number;
+    opPointY: number;
+  } | null;
 }
 
 // ── 回転数プリセット ──
@@ -33,9 +64,11 @@ interface PumpChartProps {
   initialInput?: PumpSelectionInput | null;
   onInputConsumed?: () => void;
   onSendPumpToExplanation?: (snapshot: PumpExplanationSnapshot) => void;
+  onPumpResultUpdate?: (result: PumpResultSummary) => void;
+  onGoToSourceTab?: (tab: SourceTab) => void;
 }
 
-export function PumpChart({ initialInput, onInputConsumed, onSendPumpToExplanation }: PumpChartProps) {
+export function PumpChart({ initialInput, onInputConsumed, onSendPumpToExplanation, onPumpResultUpdate, onGoToSourceTab }: PumpChartProps) {
   const { t, locale } = useTranslation();
   const isDesktop = useIsDesktop();
 
@@ -64,6 +97,9 @@ export function PumpChart({ initialInput, onInputConsumed, onSendPumpToExplanati
   // Data received banner
   const [showDataBanner, setShowDataBanner] = useState(false);
 
+  // Source tab tracking
+  const [lastSourceTab, setLastSourceTab] = useState<SourceTab>('single');
+
   // Apply external input from pressure loss calculation
   useEffect(() => {
     if (!initialInput) return;
@@ -73,6 +109,7 @@ export function PumpChart({ initialInput, onInputConsumed, onSendPumpToExplanati
     setDesignFlow(initialInput.designFlow_m3h);
     setStaticHead(initialInput.staticHead_m);
     setFrictionHead(initialInput.frictionHead_m);
+    setLastSourceTab(initialInput.sourceTab);
     setShowDataBanner(true);
 
     onInputConsumed?.();
@@ -140,6 +177,58 @@ export function PumpChart({ initialInput, onInputConsumed, onSendPumpToExplanati
     warnings.push(t('pump.warning_npsh'));
   }
 
+  // ── Mini chart path computation (normalized 0-1 coordinates) ──
+  const miniChartPaths = useMemo(() => {
+    const allFlows = [...pumpData.performance_curve.map(p => p.flow_m3h), ...resistanceCurve.map(p => p.flow_m3h)];
+    const allHeads = [...pumpData.performance_curve.map(p => p.head_m), ...resistanceCurve.map(p => p.head_m)];
+    const maxF = Math.ceil(Math.max(...allFlows) / 5) * 5;
+    const maxH = Math.ceil(Math.max(...allHeads) / 5) * 5;
+    if (maxF <= 0 || maxH <= 0) return null;
+    const normX = (f: number) => f / maxF;
+    const normY = (h: number) => 1 - h / maxH;
+
+    const pumpCurvePath = pumpData.performance_curve
+      .map((p, i) => `${i === 0 ? 'M' : 'L'} ${normX(p.flow_m3h)} ${normY(p.head_m)}`)
+      .join(' ');
+    const resistanceCurvePath = resistanceCurve
+      .map((p, i) => `${i === 0 ? 'M' : 'L'} ${normX(p.flow_m3h)} ${normY(p.head_m)}`)
+      .join(' ');
+    const opPointX = operatingPoint ? normX(operatingPoint.flow_m3h) : 0;
+    const opPointY = operatingPoint ? normY(operatingPoint.head_m) : 0;
+    return { pumpCurvePath, resistanceCurvePath, opPointX, opPointY };
+  }, [pumpData.performance_curve, resistanceCurve, operatingPoint]);
+
+  // ── Emit pump result summary to parent ──
+  const prevResultRef = useRef<string>('');
+  useEffect(() => {
+    if (!onPumpResultUpdate) return;
+    const summary: PumpResultSummary = {
+      sourceTab: lastSourceTab,
+      designFlow_m3h: designFlow,
+      staticHead_m: staticHead,
+      frictionHead_m: frictionHead,
+      totalHead_m: totalHead,
+      operatingPoint: operatingPoint ? {
+        flow_m3h: operatingPoint.flow_m3h,
+        head_m: operatingPoint.head_m,
+        efficiency_pct: operatingPoint.efficiency_pct,
+        npshr_m: operatingPoint.npshr_m,
+      } : null,
+      specificSpeed_ns: pumpSuggestion?.specificSpeed.ns ?? null,
+      recommendedType: pumpSuggestion?.specificSpeed.pumpType ?? null,
+      estimatedPower_kW: pumpSuggestion?.estimatedPower_kW ?? null,
+      npsha_m: npsha,
+      npshMargin_m: (npsha !== null && operatingPoint) ? npsha - operatingPoint.npshr_m : null,
+      warnings,
+      miniChartPaths,
+    };
+    const key = JSON.stringify(summary);
+    if (key !== prevResultRef.current) {
+      prevResultRef.current = key;
+      onPumpResultUpdate(summary);
+    }
+  }, [operatingPoint, pumpSuggestion, npsha, warnings, designFlow, staticHead, frictionHead, totalHead, lastSourceTab, miniChartPaths, onPumpResultUpdate]);
+
   // ── Shared sections ──
 
   const dataBanner = showDataBanner ? (
@@ -148,13 +237,26 @@ export function PumpChart({ initialInput, onInputConsumed, onSendPumpToExplanati
       borderRadius: '6px', marginBottom: '12px', fontSize: '0.85em',
       display: 'flex', justifyContent: 'space-between', alignItems: 'center',
     }}>
-      <span>{t('pump.data_received_from')}</span>
-      <button
-        onClick={() => setShowDataBanner(false)}
-        style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1em', color: '#666' }}
-      >
-        {'\u00D7'}
-      </button>
+      <div>
+        <span>{t('pump.data_received_from')}</span>
+        <span style={{ fontWeight: 'bold', marginLeft: '4px' }}>{t(`tab.${lastSourceTab}`)}</span>
+      </div>
+      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+        {onGoToSourceTab && (
+          <button
+            onClick={() => onGoToSourceTab(lastSourceTab)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.9em', color: '#0066cc', textDecoration: 'underline' }}
+          >
+            {t('pump.go_to_source')}
+          </button>
+        )}
+        <button
+          onClick={() => setShowDataBanner(false)}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1em', color: '#666' }}
+        >
+          {'\u00D7'}
+        </button>
+      </div>
     </div>
   ) : null;
 
