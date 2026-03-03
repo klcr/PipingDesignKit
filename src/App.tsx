@@ -5,7 +5,7 @@ import { LanguageSwitcher } from './ui/components/LanguageSwitcher';
 import { PipeLossCalculator, PipeLossCalculatorHandle } from './ui/features/PipeLossCalculator';
 import { MultiSegmentCalculator, MultiSegmentCalculatorHandle } from './ui/features/MultiSegmentCalculator';
 import { RouteEditor, RouteEditorHandle } from './ui/features/RouteEditor';
-import { PumpChart, PumpSelectionInput } from './ui/features/PumpChart';
+import { PumpChart, PumpSelectionInput, PumpResultSummary, SourceTab } from './ui/features/PumpChart';
 import { ExplanationTab } from './ui/features/explanation/ExplanationTab';
 import type { ExplanationSnapshot, PumpExplanationSnapshot } from './ui/features/explanation/types';
 import {
@@ -69,6 +69,9 @@ function AppContent() {
   // Pump selection input from pressure loss calculation
   const [pumpInput, setPumpInput] = useState<PumpSelectionInput | null>(null);
 
+  // Pump result summary (for quick view in calculator tabs)
+  const [pumpResult, setPumpResult] = useState<PumpResultSummary | null>(null);
+
   // Explanation tab snapshots
   const [explanationSnapshot, setExplanationSnapshot] = useState<ExplanationSnapshot | null>(null);
   const [pumpExplanation, setPumpExplanation] = useState<PumpExplanationSnapshot | null>(null);
@@ -97,6 +100,18 @@ function AppContent() {
   const handleSendPumpToExplanation = useCallback((snapshot: PumpExplanationSnapshot) => {
     setPumpExplanation(snapshot);
     setActiveTab('explain');
+  }, []);
+
+  const handlePumpResultUpdate = useCallback((result: PumpResultSummary) => {
+    setPumpResult(result);
+  }, []);
+
+  const handleGoToSourceTab = useCallback((tab: SourceTab) => {
+    setActiveTab(tab);
+  }, []);
+
+  const handleGoToPumpTab = useCallback(() => {
+    setActiveTab('pump');
   }, []);
 
   const handleExport = () => {
@@ -252,11 +267,21 @@ function AppContent() {
           <TabButton label={t('tab.explain')} active={activeTab === 'explain'} onClick={() => setActiveTab('explain')} compact={isMobile} />
         </div>
 
-        {activeTab === 'single' && <PipeLossCalculator key={`single-${mountKey}`} ref={singleRef} initialData={singleInitial} onSendToPump={handleSendToPump} onSendToExplanation={handleSendToExplanation} />}
-        {activeTab === 'multi' && <MultiSegmentCalculator key={`multi-${mountKey}`} ref={multiRef} initialData={multiInitial} onSendToPump={handleSendToPump} onSendToExplanation={handleSendToExplanation} />}
-        {activeTab === 'route' && <RouteEditor key={`route-${mountKey}`} ref={routeRef} initialData={routeInitial} onSendToPump={handleSendToPump} onSendToExplanation={handleSendToExplanation} />}
-        {activeTab === 'pump' && <PumpChart initialInput={pumpInput} onInputConsumed={() => setPumpInput(null)} onSendPumpToExplanation={handleSendPumpToExplanation} />}
-        {activeTab === 'explain' && <ExplanationTab snapshot={explanationSnapshot} pumpSnapshot={pumpExplanation} />}
+        <div style={{ display: activeTab === 'single' ? 'block' : 'none' }}>
+          <PipeLossCalculator key={`single-${mountKey}`} ref={singleRef} initialData={singleInitial} onSendToPump={handleSendToPump} onSendToExplanation={handleSendToExplanation} pumpResult={pumpResult} onGoToPumpTab={handleGoToPumpTab} />
+        </div>
+        <div style={{ display: activeTab === 'multi' ? 'block' : 'none' }}>
+          <MultiSegmentCalculator key={`multi-${mountKey}`} ref={multiRef} initialData={multiInitial} onSendToPump={handleSendToPump} onSendToExplanation={handleSendToExplanation} pumpResult={pumpResult} onGoToPumpTab={handleGoToPumpTab} />
+        </div>
+        <div style={{ display: activeTab === 'route' ? 'block' : 'none' }}>
+          <RouteEditor key={`route-${mountKey}`} ref={routeRef} initialData={routeInitial} onSendToPump={handleSendToPump} onSendToExplanation={handleSendToExplanation} pumpResult={pumpResult} onGoToPumpTab={handleGoToPumpTab} />
+        </div>
+        <div style={{ display: activeTab === 'pump' ? 'block' : 'none' }}>
+          <PumpChart initialInput={pumpInput} onInputConsumed={() => setPumpInput(null)} onSendPumpToExplanation={handleSendPumpToExplanation} onPumpResultUpdate={handlePumpResultUpdate} onGoToSourceTab={handleGoToSourceTab} />
+        </div>
+        <div style={{ display: activeTab === 'explain' ? 'block' : 'none' }}>
+          <ExplanationTab snapshot={explanationSnapshot} pumpSnapshot={pumpExplanation} />
+        </div>
       </div>
     </div>
   );

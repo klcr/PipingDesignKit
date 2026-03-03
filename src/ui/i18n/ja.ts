@@ -203,6 +203,14 @@ const ja: Record<string, string> = {
   // Pump - data passing
   'action.send_to_pump': 'ポンプ選定に送る',
   'pump.data_received_from': '計算結果を反映しました',
+  'pump.quick_view': 'ポンプ概要',
+  'pump.open_full_view': '詳細を表示',
+  'pump.source_from': 'データ元:',
+  'pump.go_to_source': '計算に戻る',
+  'pump.update_analysis': 'ポンプ分析を更新',
+  'pump.npsh_ok': 'NPSH OK',
+  'pump.npsh_danger': 'NPSH 不足',
+  'pump.analysis_outdated': '計算条件が変更されています。「ポンプ分析を更新」で最新の結果を反映してください。',
 
   // Pump - recommendation
   'pump.suggestion_title': '推奨ポンプ特性',

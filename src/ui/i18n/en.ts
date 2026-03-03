@@ -203,6 +203,14 @@ const en: Record<string, string> = {
   // Pump - data passing
   'action.send_to_pump': 'Send to Pump Selection',
   'pump.data_received_from': 'Data loaded from calculation',
+  'pump.quick_view': 'Pump Summary',
+  'pump.open_full_view': 'Open Full View',
+  'pump.source_from': 'Source:',
+  'pump.go_to_source': 'Go to Source',
+  'pump.update_analysis': 'Update Pump Analysis',
+  'pump.npsh_ok': 'NPSH OK',
+  'pump.npsh_danger': 'NPSH Insufficient',
+  'pump.analysis_outdated': 'Calculation inputs have changed. Click "Update Pump Analysis" to refresh results.',
 
   // Pump - recommendation
   'pump.suggestion_title': 'Recommended Pump Characteristics',

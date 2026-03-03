@@ -18,8 +18,9 @@ import { getAvailableSizes, getAvailableSchedules, resolvePipeSpec, PipeStandard
 import { getAvailableMaterials, resolveMaterial } from '@infrastructure/materialResolver';
 import { calcSingleSegment } from '@application/calcSingleSegment';
 import { SingleSegmentProjectData } from '@infrastructure/persistence/projectFile';
-import type { PumpSelectionInput } from './PumpChart';
+import type { PumpSelectionInput, PumpResultSummary } from './PumpChart';
 import type { ExplanationSnapshot } from './explanation/types';
+import { PumpQuickView } from '../components/PumpQuickView';
 
 interface FittingRow {
   fittingId: string;
@@ -36,10 +37,12 @@ export interface PipeLossCalculatorProps {
   initialData?: SingleSegmentProjectData;
   onSendToPump?: (input: PumpSelectionInput) => void;
   onSendToExplanation?: (snapshot: ExplanationSnapshot) => void;
+  pumpResult?: PumpResultSummary | null;
+  onGoToPumpTab?: () => void;
 }
 
 export const PipeLossCalculator = forwardRef<PipeLossCalculatorHandle, PipeLossCalculatorProps>(
-  function PipeLossCalculator({ initialData, onSendToPump, onSendToExplanation }, ref) {
+  function PipeLossCalculator({ initialData, onSendToPump, onSendToExplanation, pumpResult, onGoToPumpTab }, ref) {
   const { t, locale } = useTranslation();
 
   // Fluid
@@ -322,6 +325,17 @@ export const PipeLossCalculator = forwardRef<PipeLossCalculatorHandle, PipeLossC
             )}
           </Section>
 
+          {result && pumpResult && onGoToPumpTab && (
+            <PumpQuickView
+              result={pumpResult}
+              currentCalcHead={{
+                staticHead_m: result.head_elevation_m,
+                frictionHead_m: result.head_friction_m + result.head_fittings_m,
+              }}
+              onGoToPumpTab={onGoToPumpTab}
+            />
+          )}
+
           {result && onSendToPump && (
             <button
               onClick={() => {
@@ -331,6 +345,7 @@ export const PipeLossCalculator = forwardRef<PipeLossCalculatorHandle, PipeLossC
                   frictionHead_m: result.head_friction_m + result.head_fittings_m,
                   fluidId,
                   temperature_c: temperature,
+                  sourceTab: 'single',
                 });
               }}
               style={{
@@ -339,7 +354,7 @@ export const PipeLossCalculator = forwardRef<PipeLossCalculatorHandle, PipeLossC
                 borderRadius: '6px', cursor: 'pointer', width: '100%',
               }}
             >
-              {t('action.send_to_pump')}
+              {pumpResult ? t('pump.update_analysis') : t('action.send_to_pump')}
             </button>
           )}
 
