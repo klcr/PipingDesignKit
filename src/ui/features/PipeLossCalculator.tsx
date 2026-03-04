@@ -21,6 +21,7 @@ import { SingleSegmentProjectData } from '@infrastructure/persistence/projectFil
 import type { PumpSelectionInput, PumpResultSummary } from './PumpChart';
 import type { ExplanationSnapshot } from './explanation/types';
 import { PumpQuickView } from '../components/PumpQuickView';
+import { PumpAdvicePanel } from '../components/PumpAdvicePanel';
 
 interface FittingRow {
   fittingId: string;
@@ -39,10 +40,13 @@ export interface PipeLossCalculatorProps {
   onSendToExplanation?: (snapshot: ExplanationSnapshot) => void;
   pumpResult?: PumpResultSummary | null;
   onGoToPumpTab?: () => void;
+  onCalculated?: () => void;
+  onReset?: () => void;
+  onUpdatePumpSilently?: (input: PumpSelectionInput) => void;
 }
 
 export const PipeLossCalculator = forwardRef<PipeLossCalculatorHandle, PipeLossCalculatorProps>(
-  function PipeLossCalculator({ initialData, onSendToPump, onSendToExplanation, pumpResult, onGoToPumpTab }, ref) {
+  function PipeLossCalculator({ initialData, onSendToPump, onSendToExplanation, pumpResult, onGoToPumpTab, onCalculated, onReset, onUpdatePumpSilently }, ref) {
   const { t, locale } = useTranslation();
 
   // Fluid
@@ -165,6 +169,19 @@ export const PipeLossCalculator = forwardRef<PipeLossCalculatorHandle, PipeLossC
         fluid, pipe: pipeSpec, material, flowRate_m3h: flowRate,
         length_m: pipeLength, elevation_m: elevation, fittings, result: res,
       });
+      onCalculated?.();
+
+      // Auto-update pump if pump result already exists
+      if (pumpResult && onUpdatePumpSilently) {
+        onUpdatePumpSilently({
+          designFlow_m3h: flowRate,
+          staticHead_m: res.head_elevation_m,
+          frictionHead_m: res.head_friction_m + res.head_fittings_m,
+          fluidId,
+          temperature_c: temperature,
+          sourceTab: 'single',
+        });
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     }
@@ -336,6 +353,15 @@ export const PipeLossCalculator = forwardRef<PipeLossCalculatorHandle, PipeLossC
             />
           )}
 
+          {result && pumpResult && (
+            <PumpAdvicePanel
+              pumpResult={pumpResult}
+              currentFlow_m3h={flowRate}
+              currentStaticHead_m={result.head_elevation_m}
+              currentFrictionHead_m={result.head_friction_m + result.head_fittings_m}
+            />
+          )}
+
           {result && onSendToPump && (
             <button
               onClick={() => {
@@ -368,6 +394,24 @@ export const PipeLossCalculator = forwardRef<PipeLossCalculatorHandle, PipeLossC
               }}
             >
               {t('action.send_to_explanation')}
+            </button>
+          )}
+
+          {result && (
+            <button
+              onClick={() => {
+                setResult(null);
+                setError(null);
+                setLastCalcSnapshot(null);
+                onReset?.();
+              }}
+              style={{
+                marginTop: '8px', padding: '8px 20px', fontSize: '0.9em',
+                background: '#fff', color: '#c00', border: '2px solid #c00',
+                borderRadius: '6px', cursor: 'pointer', width: '100%',
+              }}
+            >
+              {t('action.reset')}
             </button>
           )}
         </div>
