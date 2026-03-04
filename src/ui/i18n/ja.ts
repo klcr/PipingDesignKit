@@ -347,6 +347,17 @@ const ja: Record<string, string> = {
   'warn.3k_diameter_range': '管内径 ({d_inch}") が Darby 3-K法の検証範囲 (0.5"〜24") 外です。継手K値の精度が低下する可能性があります。',
   'warn.fittings_dominant': '継手損失 (\u03A3K = {sum_k}) が直管損失 (fL/D = {f_ld}) を上回っています。継手の指定が正しいか確認してください。全圧損に占める継手の割合が支配的です。',
   'warn.large_elevation': '高低差が大きい (\u0394z = {dz} m)。配管ルートの中間高所で圧力が流体の蒸気圧を下回り、フラッシングが発生するリスクがあります。本計算では入口〜出口の高低差のみを使用しています。',
+
+  // Tab lock
+  'tab.locked_hint': '計算済みのため他の計算タブはロックされています',
+
+  // Pump target advice
+  'advice.title': 'ポンプ目標値との比較',
+  'advice.flow_mismatch': 'ポンプ設計流量 {target} m³/h に対し、現在の流量は {current} m³/h です。流量を {target} m³/h に変更してください。',
+  'advice.static_head_mismatch': 'ポンプ目標実揚程 {target} m に対し、現在は {current} m です。配管ルートの高低差を確認してください。',
+  'advice.friction_over': '摩擦損失が目標値 ({target} m) を超えています ({current} m)。配管サイズの拡大、管長の短縮、または継手の削減を検討してください。',
+  'advice.friction_under': '摩擦損失 ({current} m) は目標値 ({target} m) 以下です。余裕があります。',
+  'advice.all_match': '現在の計算結果はポンプ目標値と一致しています。',
 };
 
 export default ja;

@@ -23,6 +23,7 @@ import { RouteProjectData } from '@infrastructure/persistence/projectFile';
 import type { PumpSelectionInput, PumpResultSummary } from './PumpChart';
 import type { ExplanationSnapshot } from './explanation/types';
 import { PumpQuickView } from '../components/PumpQuickView';
+import { PumpAdvicePanel } from '../components/PumpAdvicePanel';
 import { useUndoableNodes } from '../hooks/useUndoableNodes';
 
 // ── Node form state ──
@@ -68,10 +69,13 @@ export interface RouteEditorProps {
   onSendToExplanation?: (snapshot: ExplanationSnapshot) => void;
   pumpResult?: PumpResultSummary | null;
   onGoToPumpTab?: () => void;
+  onCalculated?: () => void;
+  onReset?: () => void;
+  onUpdatePumpSilently?: (input: PumpSelectionInput) => void;
 }
 
 export const RouteEditor = forwardRef<RouteEditorHandle, RouteEditorProps>(
-  function RouteEditor({ initialData, onSendToPump, onSendToExplanation, pumpResult, onGoToPumpTab }, ref) {
+  function RouteEditor({ initialData, onSendToPump, onSendToExplanation, pumpResult, onGoToPumpTab, onCalculated, onReset, onUpdatePumpSilently }, ref) {
   const { t, locale } = useTranslation();
   const isDesktop = useIsDesktop();
 
@@ -350,6 +354,19 @@ export const RouteEditor = forwardRef<RouteEditorHandle, RouteEditorProps>(
           result: firstSeg,
         });
       }
+      onCalculated?.();
+
+      // Auto-update pump if pump result already exists
+      if (pumpResult && onUpdatePumpSilently) {
+        onUpdatePumpSilently({
+          designFlow_m3h: flowRate,
+          staticHead_m: res.head_elevation_total_m,
+          frictionHead_m: res.head_friction_total_m + res.head_fittings_total_m,
+          fluidId,
+          temperature_c: temperature,
+          sourceTab: 'route',
+        });
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     }
@@ -572,6 +589,15 @@ export const RouteEditor = forwardRef<RouteEditorHandle, RouteEditorProps>(
         />
       )}
 
+      {result && pumpResult && (
+        <PumpAdvicePanel
+          pumpResult={pumpResult}
+          currentFlow_m3h={flowRate}
+          currentStaticHead_m={result.head_elevation_total_m}
+          currentFrictionHead_m={result.head_friction_total_m + result.head_fittings_total_m}
+        />
+      )}
+
       {result && onSendToPump && (
         <button
           onClick={() => {
@@ -604,6 +630,24 @@ export const RouteEditor = forwardRef<RouteEditorHandle, RouteEditorProps>(
           }}
         >
           {t('action.send_to_explanation')}
+        </button>
+      )}
+
+      {result && (
+        <button
+          onClick={() => {
+            setResult(null);
+            setError(null);
+            setLastCalcSnapshot(null);
+            onReset?.();
+          }}
+          style={{
+            marginTop: '8px', padding: '8px 20px', fontSize: '0.9em',
+            background: '#fff', color: '#c00', border: '2px solid #c00',
+            borderRadius: '6px', cursor: 'pointer', width: '100%',
+          }}
+        >
+          {t('action.reset')}
         </button>
       )}
     </>

@@ -22,6 +22,7 @@ import { MultiSegmentProjectData } from '@infrastructure/persistence/projectFile
 import type { PumpSelectionInput, PumpResultSummary } from './PumpChart';
 import type { ExplanationSnapshot } from './explanation/types';
 import { PumpQuickView } from '../components/PumpQuickView';
+import { PumpAdvicePanel } from '../components/PumpAdvicePanel';
 
 interface FittingRow {
   fittingId: string;
@@ -81,10 +82,13 @@ export interface MultiSegmentCalculatorProps {
   onSendToExplanation?: (snapshot: ExplanationSnapshot) => void;
   pumpResult?: PumpResultSummary | null;
   onGoToPumpTab?: () => void;
+  onCalculated?: () => void;
+  onReset?: () => void;
+  onUpdatePumpSilently?: (input: PumpSelectionInput) => void;
 }
 
 export const MultiSegmentCalculator = forwardRef<MultiSegmentCalculatorHandle, MultiSegmentCalculatorProps>(
-  function MultiSegmentCalculator({ initialData, onSendToPump, onSendToExplanation, pumpResult, onGoToPumpTab }, ref) {
+  function MultiSegmentCalculator({ initialData, onSendToPump, onSendToExplanation, pumpResult, onGoToPumpTab, onCalculated, onReset, onUpdatePumpSilently }, ref) {
   const { t, locale } = useTranslation();
   const isDesktop = useIsDesktop();
 
@@ -225,6 +229,19 @@ export const MultiSegmentCalculator = forwardRef<MultiSegmentCalculatorHandle, M
           fittings: seg.fittings, result: res.segmentResults[0],
         });
       }
+      onCalculated?.();
+
+      // Auto-update pump if pump result already exists
+      if (pumpResult && onUpdatePumpSilently) {
+        onUpdatePumpSilently({
+          designFlow_m3h: flowRate,
+          staticHead_m: res.head_elevation_total_m,
+          frictionHead_m: res.head_friction_total_m + res.head_fittings_total_m,
+          fluidId,
+          temperature_c: temperature,
+          sourceTab: 'multi',
+        });
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     }
@@ -332,6 +349,15 @@ export const MultiSegmentCalculator = forwardRef<MultiSegmentCalculatorHandle, M
         />
       )}
 
+      {result && pumpResult && (
+        <PumpAdvicePanel
+          pumpResult={pumpResult}
+          currentFlow_m3h={flowRate}
+          currentStaticHead_m={result.head_elevation_total_m}
+          currentFrictionHead_m={result.head_friction_total_m + result.head_fittings_total_m}
+        />
+      )}
+
       {result && onSendToPump && (
         <button
           onClick={() => {
@@ -364,6 +390,24 @@ export const MultiSegmentCalculator = forwardRef<MultiSegmentCalculatorHandle, M
           }}
         >
           {t('action.send_to_explanation')}
+        </button>
+      )}
+
+      {result && (
+        <button
+          onClick={() => {
+            setResult(null);
+            setError(null);
+            setLastCalcSnapshot(null);
+            onReset?.();
+          }}
+          style={{
+            marginTop: '8px', padding: '8px 20px', fontSize: '0.9em',
+            background: '#fff', color: '#c00', border: '2px solid #c00',
+            borderRadius: '6px', cursor: 'pointer', width: '100%',
+          }}
+        >
+          {t('action.reset')}
         </button>
       )}
     </>

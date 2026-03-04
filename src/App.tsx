@@ -52,6 +52,12 @@ function AppContent() {
   const isMobile = bp === 'mobile';
   const [activeTab, setActiveTab] = useState<TabKey>('single');
 
+  // Tab locking: when a calculation is performed, lock other calc tabs
+  const [lockedTab, setLockedTab] = useState<TabKey | null>(null);
+  const calcTabs: TabKey[] = ['single', 'multi', 'route'];
+  const isTabDisabled = (tab: TabKey) =>
+    lockedTab !== null && calcTabs.includes(tab) && tab !== lockedTab;
+
   // Refs for extracting state from child components
   const singleRef = useRef<PipeLossCalculatorHandle>(null);
   const multiRef = useRef<MultiSegmentCalculatorHandle>(null);
@@ -112,6 +118,23 @@ function AppContent() {
 
   const handleGoToPumpTab = useCallback(() => {
     setActiveTab('pump');
+  }, []);
+
+  // Lock tab when a calculation is performed
+  const handleCalculated = useCallback((tab: TabKey) => {
+    setLockedTab(tab);
+  }, []);
+
+  // Reset: clear results lock + pump data (input values are preserved by each calculator)
+  const handleReset = useCallback(() => {
+    setLockedTab(null);
+    setPumpResult(null);
+    setPumpInput(null);
+  }, []);
+
+  // Silent pump update: update pump input without switching tabs
+  const handleUpdatePumpSilently = useCallback((input: PumpSelectionInput) => {
+    setPumpInput(input);
   }, []);
 
   const handleExport = () => {
@@ -259,22 +282,37 @@ function AppContent() {
           </div>
         )}
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0', marginBottom: '20px', borderBottom: '2px solid #ddd' }}>
-          <TabButton label={t('tab.single')} active={activeTab === 'single'} onClick={() => setActiveTab('single')} compact={isMobile} />
-          <TabButton label={t('tab.multi')} active={activeTab === 'multi'} onClick={() => setActiveTab('multi')} compact={isMobile} />
-          <TabButton label={t('tab.route')} active={activeTab === 'route'} onClick={() => setActiveTab('route')} compact={isMobile} />
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0', marginBottom: '20px', borderBottom: '2px solid #ddd', alignItems: 'center' }}>
+          <TabButton label={t('tab.single')} active={activeTab === 'single'} onClick={() => setActiveTab('single')} compact={isMobile} disabled={isTabDisabled('single')} />
+          <TabButton label={t('tab.multi')} active={activeTab === 'multi'} onClick={() => setActiveTab('multi')} compact={isMobile} disabled={isTabDisabled('multi')} />
+          <TabButton label={t('tab.route')} active={activeTab === 'route'} onClick={() => setActiveTab('route')} compact={isMobile} disabled={isTabDisabled('route')} />
           <TabButton label={t('tab.pump')} active={activeTab === 'pump'} onClick={() => setActiveTab('pump')} compact={isMobile} />
           <TabButton label={t('tab.explain')} active={activeTab === 'explain'} onClick={() => setActiveTab('explain')} compact={isMobile} />
+          {lockedTab && (
+            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '0.75em', color: '#888' }}>{t('tab.locked_hint')}</span>
+              <button
+                onClick={handleReset}
+                style={{
+                  padding: '4px 12px', border: '1px solid #c00', borderRadius: '4px',
+                  background: '#fff', color: '#c00', fontSize: '0.8em', cursor: 'pointer',
+                  marginBottom: '-2px', whiteSpace: 'nowrap',
+                }}
+              >
+                {t('action.reset')}
+              </button>
+            </div>
+          )}
         </div>
 
         <div style={{ display: activeTab === 'single' ? 'block' : 'none' }}>
-          <PipeLossCalculator key={`single-${mountKey}`} ref={singleRef} initialData={singleInitial} onSendToPump={handleSendToPump} onSendToExplanation={handleSendToExplanation} pumpResult={pumpResult} onGoToPumpTab={handleGoToPumpTab} />
+          <PipeLossCalculator key={`single-${mountKey}`} ref={singleRef} initialData={singleInitial} onSendToPump={handleSendToPump} onSendToExplanation={handleSendToExplanation} pumpResult={pumpResult} onGoToPumpTab={handleGoToPumpTab} onCalculated={() => handleCalculated('single')} onReset={handleReset} onUpdatePumpSilently={handleUpdatePumpSilently} />
         </div>
         <div style={{ display: activeTab === 'multi' ? 'block' : 'none' }}>
-          <MultiSegmentCalculator key={`multi-${mountKey}`} ref={multiRef} initialData={multiInitial} onSendToPump={handleSendToPump} onSendToExplanation={handleSendToExplanation} pumpResult={pumpResult} onGoToPumpTab={handleGoToPumpTab} />
+          <MultiSegmentCalculator key={`multi-${mountKey}`} ref={multiRef} initialData={multiInitial} onSendToPump={handleSendToPump} onSendToExplanation={handleSendToExplanation} pumpResult={pumpResult} onGoToPumpTab={handleGoToPumpTab} onCalculated={() => handleCalculated('multi')} onReset={handleReset} onUpdatePumpSilently={handleUpdatePumpSilently} />
         </div>
         <div style={{ display: activeTab === 'route' ? 'block' : 'none' }}>
-          <RouteEditor key={`route-${mountKey}`} ref={routeRef} initialData={routeInitial} onSendToPump={handleSendToPump} onSendToExplanation={handleSendToExplanation} pumpResult={pumpResult} onGoToPumpTab={handleGoToPumpTab} />
+          <RouteEditor key={`route-${mountKey}`} ref={routeRef} initialData={routeInitial} onSendToPump={handleSendToPump} onSendToExplanation={handleSendToExplanation} pumpResult={pumpResult} onGoToPumpTab={handleGoToPumpTab} onCalculated={() => handleCalculated('route')} onReset={handleReset} onUpdatePumpSilently={handleUpdatePumpSilently} />
         </div>
         <div style={{ display: activeTab === 'pump' ? 'block' : 'none' }}>
           <PumpChart initialInput={pumpInput} onInputConsumed={() => setPumpInput(null)} onSendPumpToExplanation={handleSendPumpToExplanation} onPumpResultUpdate={handlePumpResultUpdate} onGoToSourceTab={handleGoToSourceTab} />
@@ -360,20 +398,22 @@ function ProjectListPanel({ projects, onLoad, onRemove, onBulkExport, onBulkImpo
   );
 }
 
-function TabButton({ label, active, onClick, compact }: { label: string; active: boolean; onClick: () => void; compact?: boolean }) {
+function TabButton({ label, active, onClick, compact, disabled }: { label: string; active: boolean; onClick: () => void; compact?: boolean; disabled?: boolean }) {
   return (
     <button
-      onClick={onClick}
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
       style={{
         padding: compact ? '6px 12px' : '8px 20px',
         border: 'none',
         borderBottom: active ? '2px solid #0066cc' : '2px solid transparent',
         background: 'transparent',
-        color: active ? '#0066cc' : '#666',
+        color: disabled ? '#bbb' : active ? '#0066cc' : '#666',
         fontWeight: active ? 'bold' : 'normal',
         fontSize: compact ? '0.85em' : '0.95em',
-        cursor: 'pointer',
+        cursor: disabled ? 'not-allowed' : 'pointer',
         marginBottom: '-2px',
+        opacity: disabled ? 0.5 : 1,
       }}
     >
       {label}

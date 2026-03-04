@@ -347,6 +347,17 @@ const en: Record<string, string> = {
   'warn.3k_diameter_range': 'Pipe ID ({d_inch}") is outside the Darby 3-K method\'s validated range (0.5"–24"). Fitting K-value accuracy may be reduced.',
   'warn.fittings_dominant': 'Fitting losses (\u03A3K = {sum_k}) exceed straight-pipe losses (fL/D = {f_ld}). Verify that all fittings are correctly specified, as they dominate the total pressure drop.',
   'warn.large_elevation': 'Large elevation change (\u0394z = {dz} m). Note that intermediate high points in the pipe route may experience pressures below the fluid vapor pressure, risking flashing. Only the inlet-outlet elevation difference is used in this calculation.',
+
+  // Tab lock
+  'tab.locked_hint': 'Other calculation tabs are locked. Reset to switch.',
+
+  // Pump target advice
+  'advice.title': 'Pump Target Comparison',
+  'advice.flow_mismatch': 'Pump design flow is {target} m³/h, but current flow is {current} m³/h. Change flow rate to {target} m³/h.',
+  'advice.static_head_mismatch': 'Pump target static head is {target} m, but current is {current} m. Check pipe route elevation.',
+  'advice.friction_over': 'Friction loss ({current} m) exceeds pump target ({target} m). Consider larger pipe size, shorter pipe length, or fewer fittings.',
+  'advice.friction_under': 'Friction loss ({current} m) is below pump target ({target} m). There is margin available.',
+  'advice.all_match': 'Current results match pump target values.',
 };
 
 export default en;
